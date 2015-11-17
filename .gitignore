@@ -1,0 +1,10 @@
+# Python files.
+*.pyc
+*.pyo
+*.egg-info
+
+# Data files.
+/var/
+
+# Tox files.
+/.tox/

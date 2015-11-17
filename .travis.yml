@@ -1,0 +1,9 @@
+language: python
+env:
+  - TOXENV=py27
+  - TOXENV=flake8
+  - TOXENV=readme
+install:
+  - make develop
+script:
+  - make test

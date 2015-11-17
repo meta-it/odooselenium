@@ -1,0 +1,51 @@
+############
+Installation
+############
+
+This document covers installation of `odooselenium` for typical usage. If you
+want to setup a development environment, see :doc:`/contributing`
+documentation.
+
+.. note:: `odooselenium` is free software. See :doc:`/about/license` for
+details.
+
+
+*************
+Prerequisites
+*************
+
+`odooselenium` requires `Python` version 2.7. Other versions may work, but they
+are not part of the test suite at the moment.
+
+
+************************
+pip install odooselenium
+************************
+
+`odooselenium` has not been released yet. You can install the development
+version from Github using pip:
+
+.. code:: python
+
+   pip install https://github.com/meta-it/odooselenium/zipball/master
+
+
+*****
+Check
+*****
+
+Check `odooselenium` has been installed:
+
+.. code:: sh
+
+   python -c "import odooselenium; print(odooselenium.__version__)"
+
+You should get `odooselenium`'s version.
+
+
+.. rubric:: References
+
+.. target-notes::
+
+.. _`Python`: https://www.python.org/
+.. _`pip`: https://pip.pypa.io
