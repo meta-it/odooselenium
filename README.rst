@@ -22,12 +22,21 @@ Let's create a sample test...
    import odooselenium
 
 
-   class SampleTestCase(odooselenium.SeleniumTestCase):
+   class SampleTestCase(odooselenium.TestCase):
        def test_sample(self):
            """User can confirm several invoices at once."""
-           self.login()
-           view = self.load_view('Account/Invoices')
-           view.create_button.click()
+           self.go_to_module('Accounting')
+           self.go_to_view('Customers')
+
+See also `odooselenium`'s own tests at
+https://github.com/meta-it/odooselenium/tree/master/tests
+
+
+************
+Installation
+************
+
+See `INSTALL <https://github.com/meta-it/odooselenium/blob/master/INSTALL>`_.
 
 
 ****************

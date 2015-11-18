@@ -34,6 +34,7 @@ KEYWORDS = [
 ]
 PACKAGES = ['odooselenium']
 REQUIREMENTS = [
+    'selenium',
     'setuptools',
 ]
 ENTRY_POINTS = {}

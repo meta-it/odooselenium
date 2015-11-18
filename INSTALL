@@ -17,6 +17,13 @@ Prerequisites
 `odooselenium` requires `Python` version 2.7. Other versions may work, but they
 are not part of the test suite at the moment.
 
+`odooselenium` currently requires you have an Odoo server running:
+
+* http://localhost:8069 serves Odoo
+* User "admin" with password "admin" is administrator.
+* `web_selenium <https://github.com/brain-tec/web_selenium>`_ module is
+  enabled.
+
 
 ************************
 pip install odooselenium

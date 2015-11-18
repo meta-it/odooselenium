@@ -21,4 +21,4 @@ It also means that things not exposed in :mod:`odooselenium.api` are not part
 of the deprecation policy. They can be moved, changed, removed without notice.
 
 """
-from odooselenium.test import SeleniumTestCase  # NoQA
+from odooselenium.test import TestCase  # NoQA
