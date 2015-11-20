@@ -1,9 +1,16 @@
-language: python
+after_script:
+- make odoo-stop
+before_script:
+- make odoo-start
 env:
-  - TOXENV=py27
-  - TOXENV=flake8
-  - TOXENV=readme
+- TOXENV=py27
+- TOXENV=flake8
+- TOXENV=readme
 install:
-  - make develop
+- make develop
+language: python
 script:
-  - make test
+- make test
+services:
+- docker
+sudo: required

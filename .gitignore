@@ -3,6 +3,9 @@
 *.pyo
 *.egg-info
 
+# Third-party libraries.
+/lib/
+
 # Data files.
 /var/
 

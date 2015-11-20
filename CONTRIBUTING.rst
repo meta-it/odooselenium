@@ -25,10 +25,12 @@ Please use the `bugtracker`_ **before** starting some work:
 Fork and branch
 ***************
 
-* Work in forks and branches.
+* Work in forks and branches, use git-flow.
+
 * Prefix your branch with the ticket ID corresponding to the issue. As an
   example, if you are working on ticket #23 which is about contribute
-  documentation, name your branch like ``23-contribute-doc``.
+  documentation, name your branch like ``feature/23-contribute-doc`` using
+  ``git flow feature start 23-contribute-doc``.
 
 
 *******************************
@@ -45,6 +47,13 @@ System requirements:
      one.
 
 * make and wget to use the provided `Makefile`.
+
+* `Docker`_ is the suggested tool to setup and run Odoo service. Continuous
+  integration uses Docker. See ``docker-compose.yml`` and ``.travis.yml``.
+
+  Docker is used to serve Odoo at ``http://localhost:8069``, with user
+  ``admin``, password ``admin`` and database ``test``. These values will be
+  used within `odooselenium`'s own tests.
 
 Execute:
 
@@ -85,3 +94,4 @@ Use `the Makefile`_.
    https://github.com/meta-it/odooselenium/issues
 .. _`Python`: https://www.python.org
 .. _`Virtualenv`: https://virtualenv.pypa.io/en/latest/
+.. _`Docker`: https://www.docker.com/
