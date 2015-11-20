@@ -19,7 +19,7 @@ help:
 #: lib/odoo-addons/web_selenium - Clone repository of 'web_selenium' addon for Odoo.
 lib/odoo-addons/web_selenium:
 	mkdir -p lib/odoo-addons
-	git clone -b 8.0 git@github.com:brain-tec/web_selenium.git lib/odoo-addons/web_selenium
+	git clone -b 8.0 https://github.com/brain-tec/web_selenium.git lib/odoo-addons/web_selenium
 
 
 #: develop - Install minimal development utilities.
