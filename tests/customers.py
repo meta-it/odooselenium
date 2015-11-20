@@ -6,17 +6,17 @@ import odooselenium
 class CustomerTestCase(odooselenium.TestCase):
     def test_customer(self):
         """Create then delete sample customer."""
-        self.go_to_module('Accounting')
-        self.go_to_view('Customers')
+        self.ui.go_to_module('Accounting')
+        self.ui.go_to_view('Customers')
 
         # Toggle list view.
-        assert self.get_url_fragments()['view_type'] == u'kanban'
+        assert self.ui.get_url_fragments()['view_type'] == u'kanban'
         list_view_button = self.webdriver.find_element(
             By.CSS_SELECTOR,
             ".oe_vm_switch_list")
-        with self.assert_ajax_load():
+        with self.ui.wait_for_ajax_load():
             list_view_button.click()
-        assert self.get_url_fragments()['view_type'] == u'list'
+        assert self.ui.get_url_fragments()['view_type'] == u'list'
 
         # Create a customer.
         create_button = self.webdriver.find_element(
@@ -24,7 +24,7 @@ class CustomerTestCase(odooselenium.TestCase):
             "//button["
             "@data-bt-testing-model_name='res.partner' and "
             "@data-bt-testing-name='oe_list_add']")
-        with self.assert_ajax_load():
+        with self.ui.wait_for_ajax_load():
             create_button.click()
         # Fill in form.
         name_field = self.webdriver.find_element(
@@ -40,7 +40,7 @@ class CustomerTestCase(odooselenium.TestCase):
             "@data-bt-testing-model_name='res.partner' and "
             "@data-bt-testing-name='oe_form_button_save']"
         )
-        with self.assert_ajax_load():
+        with self.ui.wait_for_ajax_load():
             save_button.click()
 
         # Delete customer.
@@ -52,7 +52,7 @@ class CustomerTestCase(odooselenium.TestCase):
         delete_button = self.webdriver.find_element(
             By.LINK_TEXT,
             u'Delete')
-        with self.assert_ajax_load():
+        with self.ui.wait_for_ajax_load():
             delete_button.click()
             alert = self.webdriver.switch_to_alert()
             alert.accept()

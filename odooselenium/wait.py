@@ -3,6 +3,16 @@ import time
 from selenium.webdriver.support.ui import WebDriverWait
 
 
+def loading_displayed(driver):
+    """Return True if jQuery is enabled and inactive in web driver."""
+    return driver.find_element_by_css_selector('.oe_loading').is_displayed()
+
+
+def loading_hidden(driver):
+    """Return True if jQuery is enabled and inactive in web driver."""
+    return not loading_displayed(driver)
+
+
 def jquery_inactive(driver):
     """Return True if jQuery is enabled and inactive in web driver.
 
