@@ -58,11 +58,17 @@ def odoo_setup():
         user='admin',
         password='admin',
     )
-    if 'web_selenium' not in odoo.modules()['installed']:
-        assert 'web_selenium' in odoo.modules()['uninstalled'], \
-            'web_selenium addon is not available. Check extra addons path.'
-        print "Installing addon 'web_selenium'..."
-        odoo.install('web_selenium')
-        print "... web_selenium installed."
-    else:
-        print "Addon 'web_selenium' already installed."
+    modules = [
+        'account_accountant',
+        'web_selenium',
+    ]
+    print "Installing addons..."
+    for module in modules:
+        if module not in odoo.modules()['installed']:
+            assert module in odoo.modules()['uninstalled'], \
+                '{0} addon is not available. Check extra addons path.' \
+                .format(module)
+            odoo.install(module)
+        else:
+            print "Addon '{0}' already installed.".format(module)
+    print "... Additional modules installed."
