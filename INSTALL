@@ -17,17 +17,24 @@ Prerequisites
 `odooselenium` requires `Python` version 2.7. Other versions may work, but they
 are not part of the test suite at the moment.
 
+`odooselenium` currently requires you have an Odoo server running:
 
-************************
-pip install odooselenium
-************************
+* http://localhost:8069 serves Odoo;
+* User "admin" with password "admin" is administrator of database 'test';
+* `web_selenium <https://github.com/brain-tec/web_selenium>`_ module is
+  enabled.
 
-`odooselenium` has not been released yet. You can install the development
-version from Github using pip:
+
+****************************
+Install odooselenium library
+****************************
+
+Install `odooselenium` with the Python package installer you like. Here is an
+example with pip:
 
 .. code:: python
 
-   pip install https://github.com/meta-it/odooselenium/zipball/master
+   pip install odooselenium
 
 
 *****

@@ -1,0 +1,17 @@
+postgresql:
+    image: postgres:9
+    environment:
+        POSTGRES_USER: odoo
+        POSTGRES_PASSWORD: odoo
+odoo:
+    image: odoo:8
+    links:
+    - postgresql:db
+    log_driver: "json-file"
+    log_opt:
+        max-size: "500k"
+        max-file: "1"
+    ports:
+    - "8069:8069"
+    volumes:
+        - ./lib/odoo-addons:/mnt/extra-addons

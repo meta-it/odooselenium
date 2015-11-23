@@ -16,10 +16,28 @@ help:
 	@egrep -o "^#: (.+)" [Mm]akefile  | sed 's/#: /* /'
 
 
+#: lib/odoo-addons/web_selenium - Clone repository of 'web_selenium' addon for Odoo.
+lib/odoo-addons/web_selenium:
+	mkdir -p lib/odoo-addons
+	git clone -b 8.0 https://github.com/brain-tec/web_selenium.git lib/odoo-addons/web_selenium
+
+
 #: develop - Install minimal development utilities.
 .PHONY: develop
-develop:
-	$(PIP) install -e .[test]
+develop: lib/odoo-addons/web_selenium
+	$(PIP) install -e .[test] erppeek
+
+
+#: odoo-start - Run and setup Odoo development server using Docker.
+.PHONY: odoo-start
+odoo-start:
+	python -c "import init_odoo;init_odoo.odoo_start();init_odoo.odoo_setup()"
+
+
+#: odoo-stop - Stop Odoo development server using Docker.
+.PHONY: odoo-stop
+odoo-stop:
+	python -c "import init_odoo;init_odoo.odoo_stop()"
 
 
 #: clean - Basic cleanup, mostly temporary files.

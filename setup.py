@@ -20,11 +20,11 @@ README = open(os.path.join(here, 'README.rst')).read()
 VERSION = open(os.path.join(here, 'VERSION')).read().strip()
 AUTHOR = u'Meta IT'
 EMAIL = 'technique@meta-it.fr'
-LICENSE = 'Proprietary'
-URL = 'https://{name}.readthedocs.org/'.format(name=NAME)
+LICENSE = 'GPLv2'
+URL = 'https://pypi.python.org/pypi/{name}'.format(name=NAME)
 CLASSIFIERS = [
     'Development Status :: 1 - Planning',
-    'License :: Other/Proprietary License',
+    'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
     'Intended Audience :: Developers',
     'Programming Language :: Python :: 2.7',
 ]
@@ -34,6 +34,7 @@ KEYWORDS = [
 ]
 PACKAGES = ['odooselenium']
 REQUIREMENTS = [
+    'selenium',
     'setuptools',
 ]
 ENTRY_POINTS = {}
