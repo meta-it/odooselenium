@@ -17,7 +17,7 @@ def odoo_start():
 
     # Wait for Odoo to be loaded.
     print "Waiting for Odoo server to be available..."
-    time.sleep(1)
+    time.sleep(3)
     limit = time.time() + 30
     proofs_of_service = [
         'openerp.service.server: HTTP service (werkzeug) '  # ...
