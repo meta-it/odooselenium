@@ -134,6 +134,8 @@ class OdooUI(object):
         # Select all the secondary menus
         secondary_menus = self.webdriver.find_elements_by_css_selector(
             '.oe_secondary_menu')
+        menu_parts = view_name.split(u'/')
+        searched_menu = menu_parts.pop(0)
         # Click on the view requested
         view_link = None
         for sec_menu in secondary_menus:
@@ -143,9 +145,13 @@ class OdooUI(object):
                     ".oe_secondary_submenu .oe_menu_text"
                 )
                 for menu in menus:
-                    if menu.text == view_name:
-                        view_link = menu
-                        break
+                    if menu.text == searched_menu:
+                        if menu_parts:
+                            menu.click()
+                            searched_menu = menu_parts.pop(0)
+                        else:
+                            view_link = menu
+                            break
                 break
         assert view_link is not None, \
             "Couldn't find view menu '{0}'".format(view_name)
