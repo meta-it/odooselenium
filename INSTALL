@@ -25,16 +25,16 @@ are not part of the test suite at the moment.
   enabled.
 
 
-************************
-pip install odooselenium
-************************
+****************************
+Install odooselenium library
+****************************
 
-`odooselenium` has not been released yet. You can install the development
-version from Github using pip:
+Install `odooselenium` with the Python package installer you like. Here is an
+example with pip:
 
 .. code:: python
 
-   pip install https://github.com/meta-it/odooselenium/zipball/master
+   pip install odooselenium
 
 
 *****
