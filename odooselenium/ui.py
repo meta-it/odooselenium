@@ -38,12 +38,18 @@ class OdooUI(object):
     @contextlib.contextmanager
     def wait_for_page_load(self):
         """Wait for full page load and assert new page has been loaded."""
+        # Inspect initial state.
+        try:
+            initial_body = self.webdriver.find_element(By.XPATH, '//body')
+        except NoSuchElementException:  # First load.
+            initial_body = None
+
+        # Yield (back to 'with' block, where user triggers page load).
         yield
+
+        # Wait for body to change.
         ui.WebDriverWait(self.webdriver, 10).until(
-            expected_conditions.presence_of_element_located((
-                By.CSS_SELECTOR,
-                '.oe_application .oe_view_manager'
-            ))
+            expected_conditions.staleness_of(initial_body)
         )
 
     @contextlib.contextmanager
@@ -128,6 +134,13 @@ class OdooUI(object):
             "Couldn't find module menu '{0}'".format(module_name)
         with self.wait_for_ajax_load():
             module.click()
+        # Wait for application view to be loaded.
+        ui.WebDriverWait(self.webdriver, 10).until(
+            expected_conditions.presence_of_element_located((
+                By.CSS_SELECTOR,
+                '.oe_application .oe_view_manager'
+            ))
+        )
 
     def go_to_view(self, view_name):
         """Click on the view in menu."""
@@ -157,6 +170,13 @@ class OdooUI(object):
             "Couldn't find view menu '{0}'".format(view_name)
         with self.wait_for_ajax_load():
             view_link.click()
+        # Wait for application view to be loaded.
+        ui.WebDriverWait(self.webdriver, 10).until(
+            expected_conditions.presence_of_element_located((
+                By.CSS_SELECTOR,
+                '.oe_application .oe_view_manager'
+            ))
+        )
 
     def click_form_view_tab(self, tab_name):
         tabs = self.webdriver.find_elements(
