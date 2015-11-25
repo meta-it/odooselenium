@@ -4,6 +4,18 @@ Changelog
 Here are release notes of `odooselenium` project.
 
 
+0.1.1 (2015-11-25)
+------------------
+
+Bugfix release.
+
+* `Bugfix #1`_: ``OdooUI.wait_for_page_load()`` waits for staleness of ``body``
+  element in DOM. Was waiting for element by CSS selector
+  ``.oe_application .oe_view_manager``. Fixes loading in ``OdooUI.login()``.
+  
+  .. _`Bugfix #1`: https://github.com/meta-it/odooselenium/issues/1
+
+
 0.1 (2015-11-23)
 ----------------
 
