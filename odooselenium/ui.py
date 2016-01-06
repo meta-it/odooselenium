@@ -302,9 +302,9 @@ class OdooUI(object):
             input_field.send_keys(Keys.ENTER)
 
     def click_list_column(self, data_field, value):
-        """Click the item with the specified value in the specified column in a
-        list. Cycle through multiple pages if they're available and it is
-        necessary."""
+        """Click the first item with the specified value in the specified
+        column in a list. Cycle through multiple pages if they're available and
+        it is necessary."""
 
         rows = []
         while not rows:
@@ -323,13 +323,12 @@ class OdooUI(object):
             else:
                 next_buttons[0].click()
 
-        for row in rows:
-            xpath = ('//table[@class="oe_list_content"]/tbody/tr/'
-                     'td[@data-field="{}" and text()="{}"]'.format(
-                         data_field, value))
-            elem = self.webdriver.find_element_by_xpath(xpath)
-            with self.wait_for_ajax_load():
-                elem.click()
+        xpath = ('//table[@class="oe_list_content"]/tbody/tr/'
+                 'td[@data-field="{}" and text()="{}"]'.format(
+                     data_field, value))
+        elem = self.webdriver.find_element_by_xpath(xpath)
+        with self.wait_for_ajax_load():
+            elem.click()
 
     def install_module(self, module_name, timeout=60):
         """ Install the specified module. You need to be on the Settings page.
@@ -340,6 +339,9 @@ class OdooUI(object):
 
         self.clear_search_facets()
         self.search_for(module_name)
+        row_data = self.get_rows_from_list('shortdesc', module_name)
+        if row_data[0]['Status'] == 'Installed':
+            return
 
         self.click_list_column('shortdesc', module_name)
         btn = self.webdriver.find_element_by_xpath(
