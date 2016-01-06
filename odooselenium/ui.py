@@ -228,3 +228,111 @@ class OdooUI(object):
             key, value = part.split('=')
             fragment_values[key] = value
         return fragment_values
+
+    def delete_from_list(self):
+        """Delete items selected with select_list_items"""
+        self.click_more_item('Delete')
+        alert = self.webdriver.switch_to_alert()
+        alert.accept()
+
+    def get_rows_from_list(self, data_field, column_value=None):
+        """Get the values of all rows having a specific column value.
+        If column_value is not specified, get all rows."""
+        headers_xpath = ('//table[@class="oe_list_content"]/thead/tr['
+                         '@class="oe_list_header_columns"]/th[starts-with('
+                         '@class, "oe_list_header_")]/div')
+
+        print 'headers xpath: {}'.format(headers_xpath)
+        header_values = [elem.text for elem in
+                         self.webdriver.find_elements_by_xpath(headers_xpath)]
+        print 'header values: {}'.format(header_values)
+
+        if column_value:
+            xpath = ('//table[@class="oe_list_content"]/tbody/tr/td['
+                     '@data-field="{}" and text()="{}"]/../td'.format(
+                         data_field, column_value))
+        else:
+            xpath = ('//table[@class="oe_list_content"]/tbody/tr/td['
+                     '@data-field="{}"]/../td'.format(data_field))
+
+        print 'values xpath: {}'.format(xpath)
+        values = []
+
+        all_values = self.webdriver.find_elements_by_xpath(xpath)
+        chunk_size = len(header_values)
+        lines = [all_values[i:i + chunk_size] for i in xrange(0,
+                                                              len(all_values),
+                                                              chunk_size)]
+        for line in lines:
+            line_values = [elem.text for elem in line]
+            values.append(dict(zip(header_values, line_values)))
+
+        return values
+
+    def click_more_item(self, menu_item):
+        """Click an item in the More menu that appears when selecting list
+        items"""
+
+        more_button = self.webdriver.find_element_by_xpath(
+            '//button[contains(text(), "More")]')
+        more_button.click()
+        item_link = self.webdriver.find_element_by_xpath(
+            '//ul[@class="oe_dropdown_menu oe_opened"]/li/a[contains(text(), '
+            '"{}")]'.format(menu_item))
+        item_link.click()
+
+    def install_module(self, module_name):
+        """ Install the specified module """
+        if len(self.list_modules()) > 1:
+            # A fresh installation has one empty module element and is already
+            # on the Settings page
+            self.go_to_module('Settings')
+
+        with self.wait_for_ajax_load():
+            self.switch_to_view('list')
+
+        rows = self.get_rows_from_list('shortdesc', module_name)
+        if rows[0]['Status'] == 'Not Installed':
+            self.select_list_items('shortdesc', module_name)
+
+        self.click_more_item('Module Immediate Install')
+
+    def select_list_items(self, data_field, column_value):
+        """Select items in a list view where the specified data_field has the
+        specified column_value"""
+
+        xpath = ('//table[@class="oe_list_content"]/tbody/tr/'
+                 'td[@data-field="{}" and text()="{}"]/../'
+                 'th[@class="oe_list_record_selector"]/input'.format(
+                     data_field, column_value))
+        checkboxes = self.webdriver.find_elements_by_xpath(xpath)
+        for checkbox in checkboxes:
+            checkbox.click()
+
+    def switch_to_view(self, view_name):
+        """Switch to list, form or kanban view
+
+        @param view_name: should be list, form or kanban"""
+
+        xpath = ('//ul[@class="oe_view_manager_switch oe_button_group '
+                 'oe_right"]/li/a[@data-view-type="{}"]'.format(view_name))
+        button = self.webdriver.find_element_by_xpath(xpath)
+        button.click()
+
+    def _get_bt_testing_element(self, field_name):
+        return self.webdriver.find_element_by_xpath(
+            '//input[@data-bt-testing-name="{}"]'.format(field_name))
+
+    def write_in_element(self, field_name, text, clear=True):
+        """Writes text to an element"""
+        elem = self._get_bt_testing_element(field_name)
+
+        if clear:
+            elem.clear()
+
+        elem.send_keys(text)
+
+    def toggle_checkbox(self, field_name):
+        """Toggles a checkbox"""
+        elem = self._get_bt_testing_element(field_name)
+        elem.click()
