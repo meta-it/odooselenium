@@ -279,21 +279,73 @@ class OdooUI(object):
             'normalize-space(text())="{}"]'.format(menu_item))
         item_link.click()
 
-    def install_module(self, module_name):
-        """ Install the specified module """
-        if len(self.list_modules()) > 1:
-            # A fresh installation has one empty module element and is already
-            # on the Settings page
-            self.go_to_module('Settings')
+    def clear_search_facets(self):
+        xpath = ('//div[@class="oe_searchview_facets"]/'
+                 'div[@class="oe_tag oe_tag_dark oe_searchview_facet"]/'
+                 'span[@class="oe_facet_remove"]')
+        remove_facet_buttons = self.webdriver.find_elements_by_xpath(xpath)
+        visible_buttons = [el for el in remove_facet_buttons if
+                           el.is_displayed()]
+        for button in visible_buttons:
+            with self.wait_for_ajax_load():
+                button.click()
+
+    def search_for(self, search_string):
+        xpath = ('//div[@class="oe_searchview_facets"]/'
+                 'div[@class="oe_searchview_input"]')
+        input_fields = self.webdriver.find_elements_by_xpath(xpath)
+        input_field = next(field for field in input_fields
+                           if field.is_displayed())
+        with self.wait_for_ajax_load():
+            input_field.click()
+            input_field.send_keys(search_string)
+            input_field.send_keys(Keys.ENTER)
+
+    def click_list_column(self, data_field, value):
+        """Click the item with the specified value in the specified column in a
+        list. Cycle through multiple pages if they're available and it is
+        necessary."""
+
+        rows = []
+        while not rows:
+            rows = self.get_rows_from_list(data_field, value)
+
+            next_button_xpath = ('//div[@class="oe_list_pager"]/'
+                                 'ul[@class="oe_pager_group"]/li/'
+                                 'a[@data-pager-action="next"]')
+            next_buttons = self.webdriver.find_elements_by_xpath(
+                next_button_xpath)
+
+            if rows:
+                break
+            elif not next_buttons:
+                raise RuntimeError('Could not find row with {}'.format(value))
+            else:
+                next_buttons[0].click()
+
+        for row in rows:
+            xpath = ('//table[@class="oe_list_content"]/tbody/tr/'
+                     'td[@data-field="{}" and text()="{}"]'.format(
+                         data_field, value))
+            elem = self.webdriver.find_element_by_xpath(xpath)
+            with self.wait_for_ajax_load():
+                elem.click()
+
+    def install_module(self, module_name, timeout=60):
+        """ Install the specified module. You need to be on the Settings page.
+        This will NOT go through the setup wizard"""
 
         with self.wait_for_ajax_load():
             self.switch_to_view('list')
 
-        rows = self.get_rows_from_list('shortdesc', module_name)
-        if rows[0]['Status'] == 'Not Installed':
-            self.select_list_items('shortdesc', module_name)
+        self.clear_search_facets()
+        self.search_for(module_name)
 
-        self.click_more_item('Module Immediate Install')
+        self.click_list_column('shortdesc', module_name)
+        btn = self.webdriver.find_element_by_xpath(
+            '//button[@class="oe_button oe_form_button oe_highlight"]')
+        with self.wait_for_ajax_load(timeout):
+            btn.click()
 
     def select_list_items(self, data_field, column_value):
         """Select items in a list view where the specified data_field has the
@@ -346,3 +398,72 @@ class OdooUI(object):
         """Toggles a checkbox"""
         elem = self._get_bt_testing_input(field_name, in_dialog)
         elem.click()
+
+    def open_text_dropdown(self, field_name, in_dialog):
+        """Open a dropdown list on a text field"""
+
+        if in_dialog:
+            xpath = '//div[@class="modal-content openerp"]'
+        else:
+            xpath = ''
+
+        xpath += ('//input[@data-bt-testing-name="{}"]/../'
+                  'span[@class="oe_m2o_drop_down_button"]'.format(field_name))
+        elem = self.webdriver.find_element_by_xpath(xpath)
+        elem.click()
+
+    def wizard_screen(self, config_data, timeout=30):
+        """Enter the specified config data in the wizard screen.
+        config_data is a list of dicts. Each dict needs:
+            * field_type (dropdown, text, checkbox, text_dropdown)
+              * if field_type is text_dropdown, you must also supply
+                search_field
+                This is the data-field tag to be used in the Search form
+            * field_name
+            * value"""
+
+        for config_item in config_data:
+            if config_item['field_type'] == 'dropdown':
+                dropdown_xpath = ('//div[@class="modal-content openerp"]//'
+                                  'select[@data-bt-testing-name="{}"]/option['
+                                  'normalize-space(text())="{}"]'.format(
+                                      config_item['field_name'],
+                                      config_item['value']))
+                elem = self.webdriver.find_element_by_xpath(dropdown_xpath)
+                elem.click()
+            elif config_item['field_type'] == 'text':
+                self.write_in_element(config_item['field_name'],
+                                      config_item['value'],
+                                      in_dialog=True)
+            elif config_item['field_type'] == 'text_dropdown':
+                self.search_text_dropdown(config_item['field_name'],
+                                          config_item['search_field'],
+                                          config_item['value'],
+                                          True)
+
+        button_xpath = ('//div[@class="modal-content openerp"]//footer/'
+                        'button[@data-bt-testing-name="action_next"]')
+        button = self.webdriver.find_element_by_xpath(button_xpath)
+        with self.wait_for_ajax_load(timeout):
+            button.click()
+
+    def search_text_dropdown(self, field_name, search_field, value, in_dialog):
+        """Search through a text dropdown. If the value is already in the
+        dropdown, click it. If not, go to the search form via the Search
+        More... item."""
+
+        self.open_text_dropdown(field_name, in_dialog)
+        menu_items_xpath = ('//ul[contains(@class, "ui-autocomplete")]/'
+                            'li[contains(@class, "ui-menu-item")]/a')
+        menu_items = self.webdriver.find_elements_by_xpath(menu_items_xpath)
+        try:
+            elem = next(e for e in menu_items if e.text == value)
+            elem.click()
+            return
+        except StopIteration:
+            elem = next(e for e in menu_items if e.text == 'Search More...')
+            with self.wait_for_ajax_load():
+                elem.click()
+
+        with self.wait_for_ajax_load():
+            self.click_list_column(search_field, value)
