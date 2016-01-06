@@ -36,7 +36,7 @@ class OdooUI(object):
         """
 
     @contextlib.contextmanager
-    def wait_for_page_load(self):
+    def wait_for_page_load(self, timeout=10):
         """Wait for full page load and assert new page has been loaded."""
         # Inspect initial state.
         try:
@@ -48,12 +48,12 @@ class OdooUI(object):
         yield
 
         # Wait for body to change.
-        ui.WebDriverWait(self.webdriver, 10).until(
+        ui.WebDriverWait(self.webdriver, timeout).until(
             expected_conditions.staleness_of(initial_body)
         )
 
     @contextlib.contextmanager
-    def wait_for_ajax_load(self):
+    def wait_for_ajax_load(self, timeout=10):
         """Wait for AJAX-style load and assert new page has been loaded."""
         # Inspect initial state.
         initial_jquery_active = not wait.jquery_inactive(self.webdriver)
@@ -76,7 +76,7 @@ class OdooUI(object):
                 return False
             return True
 
-        ui.WebDriverWait(self.webdriver, 10).until(page_loaded)
+        ui.WebDriverWait(self.webdriver, timeout).until(page_loaded)
 
     def login(self, username, password, dbname=None):
         """Log in Odoo.
@@ -119,12 +119,16 @@ class OdooUI(object):
             path=path.lstrip('/'),
         )
 
-    def go_to_module(self, module_name):
-        """Click on the module in menu."""
+    def list_modules(self):
         modules = self.webdriver.find_elements(
             By.CSS_SELECTOR,
             ".navbar-nav .oe_menu_text"
         )
+        return modules
+
+    def go_to_module(self, module_name):
+        """Click on the module in menu."""
+        modules = self.list_modules()
         module_link = None
         for module in modules:
             if module.text == module_name:
