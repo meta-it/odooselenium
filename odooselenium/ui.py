@@ -242,10 +242,9 @@ class OdooUI(object):
                          '@class="oe_list_header_columns"]/th[starts-with('
                          '@class, "oe_list_header_")]/div')
 
-        print 'headers xpath: {}'.format(headers_xpath)
         header_values = [elem.text for elem in
-                         self.webdriver.find_elements_by_xpath(headers_xpath)]
-        print 'header values: {}'.format(header_values)
+                         self.webdriver.find_elements_by_xpath(headers_xpath)
+                         if elem.is_displayed()]
 
         if column_value:
             xpath = ('//table[@class="oe_list_content"]/tbody/tr/td['
@@ -255,7 +254,6 @@ class OdooUI(object):
             xpath = ('//table[@class="oe_list_content"]/tbody/tr/td['
                      '@data-field="{}"]/../td'.format(data_field))
 
-        print 'values xpath: {}'.format(xpath)
         values = []
 
         all_values = self.webdriver.find_elements_by_xpath(xpath)
@@ -274,11 +272,11 @@ class OdooUI(object):
         items"""
 
         more_button = self.webdriver.find_element_by_xpath(
-            '//button[contains(text(), "More")]')
+            '//button[normalize-space(text())="More"]')
         more_button.click()
         item_link = self.webdriver.find_element_by_xpath(
-            '//ul[@class="oe_dropdown_menu oe_opened"]/li/a[contains(text(), '
-            '"{}")]'.format(menu_item))
+            '//ul[@class="oe_dropdown_menu oe_opened"]/li/a['
+            'normalize-space(text())="{}"]'.format(menu_item))
         item_link.click()
 
     def install_module(self, module_name):
@@ -319,20 +317,32 @@ class OdooUI(object):
         button = self.webdriver.find_element_by_xpath(xpath)
         button.click()
 
-    def _get_bt_testing_element(self, field_name):
-        return self.webdriver.find_element_by_xpath(
-            '//input[@data-bt-testing-name="{}"]'.format(field_name))
+    def _get_bt_testing_input(self, field_name, in_dialog):
+        if in_dialog:
+            xpath = '//div[@class="modal-content openerp"]'
+        else:
+            xpath = ''
 
-    def write_in_element(self, field_name, text, clear=True):
-        """Writes text to an element"""
-        elem = self._get_bt_testing_element(field_name)
+        xpath += '//input[@data-bt-testing-name="{}"]'.format(field_name)
+
+        return self.webdriver.find_element_by_xpath(xpath)
+
+    def write_in_element(self, field_name, text, clear=True, in_dialog=False):
+        """Writes text to an element
+        @param field_name: data-bt-testing-name on the element
+        @param text: text to enter into the field
+        @clear: whether to clear the field first
+        @param clear: whether to clear the field first
+        @param in_dialog: whether the text field is part of a modal dialog
+        """
+        elem = self._get_bt_testing_input(field_name, in_dialog)
 
         if clear:
             elem.clear()
 
         elem.send_keys(text)
 
-    def toggle_checkbox(self, field_name):
+    def toggle_checkbox(self, field_name, in_dialog=False):
         """Toggles a checkbox"""
-        elem = self._get_bt_testing_element(field_name)
+        elem = self._get_bt_testing_input(field_name, in_dialog)
         elem.click()
