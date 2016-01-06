@@ -1,6 +1,5 @@
 import json
 import os
-import time
 
 from odooselenium import TestCase
 
@@ -15,4 +14,3 @@ class TestAccounting(TestCase):
             wizard_data = json.load(fp)
         self.ui.wizard_screen(wizard_data[0], 300)
         self.ui.wizard_screen(wizard_data[1], 300)
-        time.sleep(20)
