@@ -1,25 +1,16 @@
-[[{"field_name": "charts",
-   "value": "Belgium - Accounting"},
-  {"field_name": "company_id",
-   "value": "Your Company"},
-  {"field_name": "date_start",
-   "value": "01/02/2016"},
-  {"field_name": "date_stop",
-   "value": "31/01/2017"},
-  {"field_name": "period",
-   "value": "Monthly"}],
- [{"field_name": "chart_template_id",
-   "value": "Belgian PCMN"},
-  {"field_name": "company_id",
-   "value": "Your Company"},
-  {"field_name": "currency_id",
-   "value": "EUR",
-   "search_field": "name"},
-  {"field_name": "sale_tax",
-   "value": "VAT-OUT-06-S",
-   "search_field": "description"},
-  {"field_name": "purchase_tax",
-   "value": "VAT-IN-V81-06",
-   "search_field": "description"},
-  {"field_name": "code_digits",
-   "value": "6"}]]
+[
+    [
+        {"field": "Accounting Package", "value": "Belgium - Accounting"},
+        {"field": "Company", "value": "Your Company"},
+        {"field": "Date Range", "value": ["01/02/2016", "31/01/2017"]},
+        {"field": "Periods", "value": "Monthly"}
+    ],
+    [
+        {"field": "Chart Template", "value": "Belgian PCMN"},
+        {"field": "Company", "value": "Your Company"},
+        {"field": "Currency", "value": "LAK", "search_column": "Currency"},
+        {"field": "Default Sale Tax", "value": "TVA services EU", "search_column": "Tax Name"},
+        {"field": "Default Purchase Tax", "value": "VAT-IN-V82-21-S", "search_column": "Internal Name"},
+        {"field": "# of Digits", "value": "6"}
+    ]
+]
