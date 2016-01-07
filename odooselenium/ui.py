@@ -419,9 +419,9 @@ class OdooUI(object):
     def wizard_screen(self, config_data, timeout=30):
         """Enter the specified config data in the wizard screen.
         config_data is a list of dicts. Each dict needs:
-            * field: the data-bt-testing-name attribute of the field
+            * field: the label text for the field
             * value: the value to enter
-            * search_field: the data-field tag to be used in the Search form in
+            * search_column: the column title to search in the Search form in
                             case of an autocomplete text field
         """
         for config_item in config_data:
@@ -456,7 +456,7 @@ class OdooUI(object):
                     elif (elem_type == 'text'
                             and elem_class == 'ui-autocomplete-input'):
                         self.search_text_dropdown(data_bt_testing_name,
-                                                  config_item['search_field'],
+                                                  config_item['search_column'],
                                                   config_value,
                                                   True)
                     elif elem_type == 'checkbox':
@@ -473,7 +473,17 @@ class OdooUI(object):
         with self.wait_for_ajax_load(timeout):
             button.click()
 
-    def search_text_dropdown(self, field_name, search_field, value, in_dialog):
+    def _get_data_id_from_column_title(self, column_title):
+        """Get the data-id attribute based on a column title"""
+
+        xpath = ('//table[@class="oe_list_content"]/thead/tr'
+                 '[@class="oe_list_header_columns"]/th/div[normalize-space('
+                 'text())="{}"]/..'.format(column_title))
+
+        elem = self.webdriver.find_element_by_xpath(xpath)
+        return elem.get_attribute('data-id')
+
+    def search_text_dropdown(self, field_name, column_title, value, in_dialog):
         """Search through a text dropdown. If the value is already in the
         dropdown, click it. If not, go to the search form via the Search
         More... item."""
@@ -491,6 +501,7 @@ class OdooUI(object):
             with self.wait_for_ajax_load():
                 elem.click()
 
+        search_field = self._get_data_id_from_column_title(column_title)
         with self.wait_for_ajax_load():
             self.click_list_column(search_field, value)
 
