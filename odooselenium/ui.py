@@ -3,6 +3,7 @@ import contextlib
 import urlparse
 
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions
@@ -271,10 +272,10 @@ class OdooUI(object):
         """Click an item in the More menu that appears when selecting list
         items"""
 
-        more_button = self.webdriver.find_element_by_xpath(
+        more_button = self.wait_for_visible_element_by_xpath(
             '//button[normalize-space(text())="More"]')
         more_button.click()
-        item_link = self.webdriver.find_element_by_xpath(
+        item_link = self.wait_for_visible_element_by_xpath(
             '//ul[@class="oe_dropdown_menu oe_opened"]/li/a['
             'normalize-space(text())="{}"]'.format(menu_item))
         item_link.click()
@@ -326,7 +327,7 @@ class OdooUI(object):
         xpath = ('//table[@class="oe_list_content"]/tbody/tr/'
                  'td[@data-field="{}" and text()="{}"]'.format(
                      data_field, value))
-        elem = self.webdriver.find_element_by_xpath(xpath)
+        elem = self.wait_for_visible_element_by_xpath(xpath)
         with self.wait_for_ajax_load():
             elem.click()
 
@@ -344,7 +345,7 @@ class OdooUI(object):
             return
 
         self.click_list_column('shortdesc', module_name)
-        btn = self.webdriver.find_element_by_xpath(
+        btn = self.wait_for_visible_element_by_xpath(
             '//button[@class="oe_button oe_form_button oe_highlight"]')
         with self.wait_for_ajax_load(timeout):
             btn.click()
@@ -368,13 +369,13 @@ class OdooUI(object):
 
         xpath = ('//ul[@class="oe_view_manager_switch oe_button_group '
                  'oe_right"]/li/a[@data-view-type="{}"]'.format(view_name))
-        button = self.webdriver.find_element_by_xpath(xpath)
+        button = self.wait_for_visible_element_by_xpath(xpath)
         button.click()
 
     def _get_bt_testing_element(self, field_name):
         xpath = '//*[@data-bt-testing-name="{}"]'.format(field_name)
 
-        return self.webdriver.find_element_by_xpath(xpath)
+        return self.wait_for_visible_element_by_xpath(xpath)
 
     def write_in_element(self, field_name, text, clear=True):
         """Writes text to an element
@@ -406,7 +407,7 @@ class OdooUI(object):
 
         xpath += ('//input[@data-bt-testing-name="{}"]/../'
                   'span[@class="oe_m2o_drop_down_button"]'.format(field_name))
-        elem = self.webdriver.find_element_by_xpath(xpath)
+        elem = self.wait_for_visible_element_by_xpath(xpath)
         elem.click()
 
     def wizard_screen(self, config_data, timeout=30):
@@ -425,7 +426,7 @@ class OdooUI(object):
                                   'normalize-space(text())="{}"]'.format(
                                       config_item['field_name'],
                                       config_item['value']))
-                elem = self.webdriver.find_element_by_xpath(dropdown_xpath)
+                elem = self.wait_for_visible_element_by_xpath(dropdown_xpath)
                 elem.click()
             elif elem.tag_name == 'input':
                 elem_class = elem.get_attribute('class')
@@ -450,7 +451,7 @@ class OdooUI(object):
 
         button_xpath = ('//div[@class="modal-content openerp"]//footer/'
                         'button[@data-bt-testing-name="action_next"]')
-        button = self.webdriver.find_element_by_xpath(button_xpath)
+        button = self.wait_for_visible_element_by_xpath(button_xpath)
         with self.wait_for_ajax_load(timeout):
             button.click()
 
@@ -474,3 +475,23 @@ class OdooUI(object):
 
         with self.wait_for_ajax_load():
             self.click_list_column(search_field, value)
+
+    def wait_for_visible_element_by_xpath(self, xpath, timeout=10, attempts=2):
+        """Find an element by XPath and wait until it is visible. Will try up
+        to <attempts> times with a timeout of <timeout> seconds each time."""
+
+        tries = 0
+        elem = None
+
+        while tries < attempts and elem is None:
+            try:
+                condition = expected_conditions.visibility_of_element_located(
+                    (By.XPATH, xpath))
+                elem = ui.WebDriverWait(self.webdriver,
+                                        timeout).until(condition)
+            except TimeoutException:
+                tries += 1
+                if tries == attempts:
+                    raise
+
+        return elem
