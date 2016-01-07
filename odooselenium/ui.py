@@ -236,9 +236,10 @@ class OdooUI(object):
         alert = self.webdriver.switch_to_alert()
         alert.accept()
 
-    def get_rows_from_list(self, data_field, column_value=None):
+    def get_rows_from_list(self, data_field=None, column_value=None):
         """Get the values of all rows having a specific column value.
-        If column_value is not specified, get all rows."""
+        If data_field and column_value are not specified, get all rows."""
+
         headers_xpath = ('//table[@class="oe_list_content"]/thead/tr['
                          '@class="oe_list_header_columns"]/th[starts-with('
                          '@class, "oe_list_header_")]/div')
@@ -247,13 +248,12 @@ class OdooUI(object):
                          self.webdriver.find_elements_by_xpath(headers_xpath)
                          if elem.is_displayed()]
 
-        if column_value:
+        if data_field and column_value:
             xpath = ('//table[@class="oe_list_content"]/tbody/tr/td['
                      '@data-field="{}" and text()="{}"]/../td'.format(
                          data_field, column_value))
         else:
-            xpath = ('//table[@class="oe_list_content"]/tbody/tr/td['
-                     '@data-field="{}"]/../td'.format(data_field))
+            xpath = '//table[@class="oe_list_content"]/tbody/tr/td'
 
         values = []
 
