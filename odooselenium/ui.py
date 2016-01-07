@@ -410,44 +410,62 @@ class OdooUI(object):
         elem = self.wait_for_visible_element_by_xpath(xpath)
         elem.click()
 
+    def get_edit_fields_from_label_text(self, label_text):
+        xpath = ('//tr/td/label[normalize-space(text())="{}"]/../../td'
+                 '//*[self::input or self::select]'.format(label_text))
+        elems = self.webdriver.find_elements_by_xpath(xpath)
+        return [e for e in elems if e.is_displayed()]
+
     def wizard_screen(self, config_data, timeout=30):
         """Enter the specified config data in the wizard screen.
         config_data is a list of dicts. Each dict needs:
-            * field_name: the data-bt-testing-name attribute of the field
+            * field: the data-bt-testing-name attribute of the field
             * value: the value to enter
             * search_field: the data-field tag to be used in the Search form in
                             case of an autocomplete text field
         """
         for config_item in config_data:
-            elem = self._get_bt_testing_element(config_item['field_name'])
-            if elem.tag_name == 'select':
-                dropdown_xpath = ('//div[@class="modal-content openerp"]//'
-                                  'select[@data-bt-testing-name="{}"]/option['
-                                  'normalize-space(text())="{}"]'.format(
-                                      config_item['field_name'],
-                                      config_item['value']))
-                elem = self.wait_for_visible_element_by_xpath(dropdown_xpath)
-                elem.click()
-            elif elem.tag_name == 'input':
-                elem_class = elem.get_attribute('class')
-                elem_type = elem.get_attribute('type')
-                if (elem_type == 'text' and
-                        elem_class in ['', 'oe_datepicker_master']):
-                    self.write_in_element(config_item['field_name'],
-                                          config_item['value'])
-                elif (elem_type == 'text'
-                        and elem_class == 'ui-autocomplete-input'):
-                    self.search_text_dropdown(config_item['field_name'],
-                                              config_item['search_field'],
-                                              config_item['value'],
-                                              True)
-                elif elem_type == 'checkbox':
-                    if elem.is_selected() != config_item['value']:
-                        self.toggle_checkbox(config_item['field_name'])
+            input_fields = self.get_edit_fields_from_label_text(
+                config_item['field'])
+            for index, elem in enumerate(input_fields):
+                if isinstance(config_item['value'], list):
+                    config_value = config_item['value'][index]
                 else:
-                    raise NotImplementedError(
-                        "I don't know how to handle {}".format(
-                            config_item['field_name']))
+                    config_value = config_item['value']
+
+                data_bt_testing_name = elem.get_attribute(
+                    'data-bt-testing-name')
+
+                if elem.tag_name == 'select':
+                    dropdown_xpath = ('//div[@class="modal-content openerp"]//'
+                                      'select[@data-bt-testing-name="{}"]/'
+                                      'option[normalize-space('
+                                      'text())="{}"]'.format(
+                                          data_bt_testing_name,
+                                          config_value))
+                    elem = self.wait_for_visible_element_by_xpath(
+                        dropdown_xpath)
+                    elem.click()
+                elif elem.tag_name == 'input':
+                    elem_class = elem.get_attribute('class')
+                    elem_type = elem.get_attribute('type')
+                    if (elem_type == 'text' and
+                            elem_class in ['', 'oe_datepicker_master']):
+                        self.write_in_element(data_bt_testing_name,
+                                              config_value)
+                    elif (elem_type == 'text'
+                            and elem_class == 'ui-autocomplete-input'):
+                        self.search_text_dropdown(data_bt_testing_name,
+                                                  config_item['search_field'],
+                                                  config_value,
+                                                  True)
+                    elif elem_type == 'checkbox':
+                        if elem.is_selected() != config_value:
+                            self.toggle_checkbox(data_bt_testing_name)
+                    else:
+                        raise NotImplementedError(
+                            "I don't know how to handle {}".format(
+                                config_item['field']))
 
         button_xpath = ('//div[@class="modal-content openerp"]//footer/'
                         'button[@data-bt-testing-name="action_next"]')
