@@ -411,8 +411,9 @@ class OdooUI(object):
         elem.click()
 
     def get_edit_fields_from_label_text(self, label_text):
-        xpath = ('//tr/td/label[normalize-space(text())="{}"]/../../td'
-                 '//*[self::input or self::select]'.format(label_text))
+        xpath = ('//tr/td/label[normalize-space(text())="{}"]/../'
+                 'following-sibling::td[1]/span/*[self::input or self::select]'
+                 .format(label_text))
         elems = self.webdriver.find_elements_by_xpath(xpath)
         return [e for e in elems if e.is_displayed()]
 
