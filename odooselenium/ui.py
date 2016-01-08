@@ -213,6 +213,16 @@ class OdooUI(object):
                             button.click()
                         break
 
+    def click_apply(self):
+        xpath = ('//button[contains(@class, "oe_button")]/'
+                 'span[normalize-space(text())="Apply"]')
+        buttons = self.webdriver.find_elements_by_xpath(xpath)
+        visible_buttons = [b for b in buttons if b.is_displayed()]
+        if len(visible_buttons) != 1:
+            raise RuntimeError("Couldn't find exactly one Apply button")
+        with self.wait_for_ajax_load():
+            visible_buttons[0].click()
+
     def get_url_fragments(self, url=None):
         """Return dictionary of current URL fragment.
 
