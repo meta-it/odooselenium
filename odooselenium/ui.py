@@ -127,7 +127,7 @@ class OdooUI(object):
         )
         return modules
 
-    def go_to_module(self, module_name):
+    def go_to_module(self, module_name, timeout=10):
         """Click on the module in menu."""
         modules = self.list_modules()
         module_link = None
@@ -140,14 +140,14 @@ class OdooUI(object):
         with self.wait_for_ajax_load():
             module.click()
         # Wait for application view to be loaded.
-        ui.WebDriverWait(self.webdriver, 10).until(
+        ui.WebDriverWait(self.webdriver, timeout).until(
             expected_conditions.presence_of_element_located((
                 By.CSS_SELECTOR,
                 '.oe_application .oe_view_manager'
             ))
         )
 
-    def go_to_view(self, view_name):
+    def go_to_view(self, view_name, timeout=10):
         """Click on the view in menu."""
         # Select all the secondary menus
         secondary_menus = self.webdriver.find_elements_by_css_selector(
@@ -176,7 +176,7 @@ class OdooUI(object):
         with self.wait_for_ajax_load():
             view_link.click()
         # Wait for application view to be loaded.
-        ui.WebDriverWait(self.webdriver, 10).until(
+        ui.WebDriverWait(self.webdriver, timeout).until(
             expected_conditions.presence_of_element_located((
                 By.CSS_SELECTOR,
                 '.oe_application .oe_view_manager'
