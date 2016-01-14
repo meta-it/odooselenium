@@ -214,8 +214,7 @@ class OdooUI(object):
                         break
 
     def click_apply(self):
-        xpath = ('//button[contains(@class, "oe_button")]/'
-                 'span[normalize-space(text())="Apply"]')
+        xpath = '//button[@data-bt-testing-name="execute"]'
         buttons = self.webdriver.find_elements_by_xpath(xpath)
         visible_buttons = [b for b in buttons if b.is_displayed()]
         if len(visible_buttons) != 1:
