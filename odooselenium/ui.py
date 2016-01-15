@@ -213,13 +213,20 @@ class OdooUI(object):
                             button.click()
                         break
 
-    def click_apply(self):
-        xpath = '//button[@data-bt-testing-name="execute"]'
+    def click_edit(self, timeout=10):
+        self.click_ajax_load_button('oe_form_button_edit', timeout)
+
+    def click_apply(self, timeout=10):
+        self.click_ajax_load_button('execute', timeout)
+
+    def click_ajax_load_button(self, data_bt_testing_name, timeout=10):
+        xpath = '//button[@data-bt-testing-name="{}"]'.format(
+            data_bt_testing_name)
         buttons = self.webdriver.find_elements_by_xpath(xpath)
         visible_buttons = [b for b in buttons if b.is_displayed()]
         if len(visible_buttons) != 1:
             raise RuntimeError("Couldn't find exactly one Apply button")
-        with self.wait_for_ajax_load():
+        with self.wait_for_ajax_load(timeout):
             visible_buttons[0].click()
 
     def get_url_fragments(self, url=None):
