@@ -229,6 +229,15 @@ class OdooUI(object):
         with self.wait_for_ajax_load(timeout):
             visible_buttons[0].click()
 
+    def add_item_to_form_table(self, timeout=10):
+        xpath = '//*[@class="oe_form_field_one2many_list_row_add"]/a'
+        add_links = self.webdriver.find_elements_by_xpath(xpath)
+        visible_links = [l for l in add_links if l.is_displayed()]
+        if len(visible_links) != 1:
+            raise RuntimeError("Couldn't find exactly one Add an item link")
+        with self.wait_for_ajax_load(timeout):
+            visible_links[0].click()
+
     def get_url_fragments(self, url=None):
         """Return dictionary of current URL fragment.
 
