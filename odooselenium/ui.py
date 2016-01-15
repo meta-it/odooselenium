@@ -478,7 +478,8 @@ class OdooUI(object):
                 raise NotImplementedError(
                     "I don't know how to handle {}".format(field))
 
-    def wizard_screen(self, config_data, timeout=30):
+    def wizard_screen(self, config_data, next_button="action_next",
+                      timeout=30):
         """Enter the specified config data in the wizard screen.
         config_data is a list of dicts. Each dict needs:
             * field: the data-bt-testing-name attribute for the field
@@ -490,9 +491,7 @@ class OdooUI(object):
             self.enter_data(config_item['field'], config_item['value'],
                             config_item.get('search_column'), True)
 
-        button_xpath = ('//div[@class="modal-content openerp"]//footer/'
-                        'button[@data-bt-testing-name="action_next"]')
-        button = self.wait_for_visible_element_by_xpath(button_xpath)
+        button = self._get_bt_testing_element(next_button)
         with self.wait_for_ajax_load(timeout):
             button.click()
 
