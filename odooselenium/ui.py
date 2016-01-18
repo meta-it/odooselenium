@@ -620,3 +620,10 @@ class OdooUI(object):
                     raise
 
         return elem
+
+    def switch_tab(self, tab_text):
+        xpath = '//li[@role="tab"]/a[normalize-space(text())="{}"]'.format(
+            tab_text)
+        tab = self.wait_for_visible_element_by_xpath(xpath)
+        with self.wait_for_ajax_load():
+            tab.click()
