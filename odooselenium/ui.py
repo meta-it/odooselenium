@@ -218,18 +218,25 @@ class OdooUI(object):
                         break
 
     def click_edit(self, timeout=10):
-        self.click_ajax_load_button('oe_form_button_edit', timeout)
+        self.click_ajax_load_button('oe_form_button_edit', timeout=timeout)
 
     def click_apply(self, timeout=10):
-        self.click_ajax_load_button('execute', timeout)
+        self.click_ajax_load_button('execute', timeout=timeout)
 
-    def click_ajax_load_button(self, data_bt_testing_name, timeout=10):
-        xpath = '//button[@data-bt-testing-name="{}"]'.format(
-            data_bt_testing_name)
+    def click_ajax_load_button(self, data_bt_testing_name,
+                               data_bt_testing_model_name=None, timeout=10):
+        if data_bt_testing_model_name:
+            xpath = ('//button[@data-bt-testing-name="{}" and '
+                     '@data-bt-testing-model_name="{}"]'.format(
+                         data_bt_testing_name, data_bt_testing_model_name))
+        else:
+            xpath = '//button[@data-bt-testing-name="{}"]'.format(
+                    data_bt_testing_name)
+
         buttons = self.webdriver.find_elements_by_xpath(xpath)
         visible_buttons = [b for b in buttons if b.is_displayed()]
         if len(visible_buttons) != 1:
-            raise RuntimeError("Couldn't find exactly one Apply button")
+            raise RuntimeError("Couldn't find exactly one button to click")
         with self.wait_for_ajax_load(timeout):
             visible_buttons[0].click()
 
@@ -407,32 +414,41 @@ class OdooUI(object):
         button = self.wait_for_visible_element_by_xpath(xpath)
         button.click()
 
-    def _get_bt_testing_element(self, field_name):
-        xpath = '//*[@data-bt-testing-name="{}"]'.format(field_name)
+    def _get_bt_testing_element(self, field_name, model_name=None, last=False):
+        if model_name:
+            xpath = ('//*[@data-bt-testing-name="{}" and '
+                     '@data-bt-testing-model_name="{}"]'.format(field_name,
+                                                                model_name))
+        else:
+            xpath = '//*[@data-bt-testing-name="{}"]'.format(field_name)
+
+        if last:
+            xpath = '({})[last()]'.format(xpath)
 
         return self.wait_for_visible_element_by_xpath(xpath)
 
-    def write_in_element(self, field_name, text, clear=True):
+    def write_in_element(self, field_name, model_name, text, clear=True):
         """Writes text to an element
         @param field_name: data-bt-testing-name on the element
+        @param model_name: the data-bt-testing-model_name on the element
         @param text: text to enter into the field
         @clear: whether to clear the field first
         @param clear: whether to clear the field first
         @param in_dialog: whether the text field is part of a modal dialog
         """
-        elem = self._get_bt_testing_element(field_name)
+        elem = self._get_bt_testing_element(field_name, model_name)
 
         if clear:
             elem.clear()
 
         elem.send_keys(text)
 
-    def toggle_checkbox(self, field_name):
+    def toggle_checkbox(self, field_name, model_name):
         """Toggles a checkbox"""
-        elem = self._get_bt_testing_element(field_name)
+        elem = self._get_bt_testing_element(field_name, model_name)
         elem.click()
 
-    def open_text_dropdown(self, field_name, in_dialog):
+    def open_text_dropdown(self, field_name, model_name, in_dialog):
         """Open a dropdown list on a text field"""
 
         if in_dialog:
@@ -440,8 +456,10 @@ class OdooUI(object):
         else:
             xpath = ''
 
-        xpath += ('//input[@data-bt-testing-name="{}"]/../'
-                  'span[@class="oe_m2o_drop_down_button"]'.format(field_name))
+        xpath += ('//input[@data-bt-testing-name="{}" and '
+                  '@data-bt-testing-model_name="{}"]/../'
+                  'span[@class="oe_m2o_drop_down_button"]'.format(field_name,
+                                                                  model_name))
         elem = self.wait_for_visible_element_by_xpath(xpath)
         elem.click()
 
@@ -457,21 +475,24 @@ class OdooUI(object):
         field = self.webdriver.find_element_by_id(field_id)
         return field
 
-    def enter_data(self, field, data, search_column=None, in_dialog=False):
+    def enter_data(self, field, model, data, search_column=None,
+                   in_dialog=False):
         """Enter data into a field. The type of field will be determined.
 
         @param field: the data-bt-testing-name attribute for the field
+        @param model: the data-bt-testing-model_name attribute for the field
         @param data: the data to enter
         @param search_column: the column title to search in the Search form in
                               case of an autocomplete text field
         """
-        input_field = self._get_bt_testing_element(field)
+        input_field = self._get_bt_testing_element(field, model)
 
         if input_field.tag_name == 'select':
             dropdown_xpath = ('//div[@class="modal-content openerp"]//'
-                              'select[@data-bt-testing-name="{}"]/'
+                              'select[@data-bt-testing-name="{}" and '
+                              '@data-bt-testing-model_name="{}"]/'
                               'option[normalize-space('
-                              'text())="{}"]'.format(field, data))
+                              'text())="{}"]'.format(field, model, data))
             input_field = self.webdriver.find_element_by_xpath(dropdown_xpath)
             input_field.click()
         elif input_field.tag_name == 'input':
@@ -479,14 +500,18 @@ class OdooUI(object):
             elem_type = input_field.get_attribute('type')
             if (elem_type == 'text' and
                     elem_class in ['', 'oe_datepicker_master']):
-                self.write_in_element(field, data)
+                self.write_in_element(field, model, data)
             elif (elem_type == 'text'
                     and elem_class == 'ui-autocomplete-input'):
-                self.search_text_dropdown(field, search_column, data,
-                                          in_dialog)
+                if isinstance(data, list):
+                    self.create_from_text_dropdown(field, model, in_dialog,
+                                                   data)
+                else:
+                    self.search_text_dropdown(field, model, search_column,
+                                              data, in_dialog)
             elif elem_type == 'checkbox':
                 if input_field.is_selected() != data:
-                    self.toggle_checkbox(field)
+                    self.toggle_checkbox(field, model)
             else:
                 raise NotImplementedError(
                     "I don't know how to handle {}".format(field))
@@ -496,15 +521,17 @@ class OdooUI(object):
         """Enter the specified config data in the wizard screen.
         config_data is a list of dicts. Each dict needs:
             * field: the data-bt-testing-name attribute for the field
+            * model: the data-bt-testing-model_name attribute for the field
             * value: the value to enter
             * search_column: the column title to search in the Search form in
                              case of an autocomplete text field
         """
         for config_item in config_data:
-            self.enter_data(config_item['field'], config_item['value'],
+            self.enter_data(config_item['field'], config_item['model'],
+                            config_item['value'],
                             config_item.get('search_column'), True)
 
-        button = self._get_bt_testing_element(next_button)
+        button = self._get_bt_testing_element(next_button, last=True)
         with self.wait_for_ajax_load(timeout):
             button.click()
 
@@ -518,20 +545,22 @@ class OdooUI(object):
         elem = self.webdriver.find_element_by_xpath(xpath)
         return elem.get_attribute('data-id')
 
-    def _get_autocomplete_dropdown_items(self, field_name, in_dialog):
-        self.open_text_dropdown(field_name, in_dialog)
+    def _get_autocomplete_dropdown_items(self, field_name, model, in_dialog):
+        self.open_text_dropdown(field_name, model, in_dialog)
         menu_items_xpath = ('//ul[contains(@class, "ui-autocomplete")]/'
                             'li[contains(@class, "ui-menu-item")]/a')
         menu_items = self.webdriver.find_elements_by_xpath(menu_items_xpath)
 
         return menu_items
 
-    def search_text_dropdown(self, field_name, column_title, value, in_dialog):
+    def search_text_dropdown(self, field_name, model, column_title, value,
+                             in_dialog):
         """Search through a text dropdown. If the value is already in the
         dropdown, click it. If not, go to the search form via the Search
         More... item."""
 
         menu_items = self._get_autocomplete_dropdown_items(field_name,
+                                                           model,
                                                            in_dialog)
         try:
             elem = next(e for e in menu_items if e.text == value)
@@ -540,10 +569,12 @@ class OdooUI(object):
         except StopIteration:
             self.search_more(menu_items, column_title, value)
 
-    def create_from_text_dropdown(self, field_name, in_dialog, config_data):
+    def create_from_text_dropdown(self, field_name, model, in_dialog,
+                                  config_data):
         """Create a new item in an autocomplete text field via the Create and
         Edit option"""
         menu_items = self._get_autocomplete_dropdown_items(field_name,
+                                                           model,
                                                            in_dialog)
         elem = next(e for e in menu_items if e.text == 'Create and Edit...')
         with self.wait_for_ajax_load():
