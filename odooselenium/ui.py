@@ -1,5 +1,6 @@
 """Python bindings to Odoo's user interface (UI) driven by Selenium."""
 import contextlib
+import re
 import urlparse
 
 from selenium.common.exceptions import NoSuchElementException
@@ -10,6 +11,9 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support import ui
 
 from odooselenium import wait
+
+
+PAGER_STATUS_REX = re.compile('\d+-(?P<last>\d+) of (?P<total>\d+)')
 
 
 class OdooUI(object):
@@ -342,7 +346,16 @@ class OdooUI(object):
             elif not next_buttons:
                 raise RuntimeError('Could not find row with {}'.format(value))
             else:
-                next_buttons[0].click()
+                pager_status_xpath = '//span[@class="oe_list_pager_state"]'
+                pager_status = self.webdriver.find_element_by_xpath(
+                    pager_status_xpath)
+                status_match = re.match(PAGER_STATUS_REX,
+                                        pager_status.text).groupdict()
+                if status_match['last'] == status_match['total']:
+                    raise RuntimeError('Could not find row with {}'.format(
+                        value))
+                else:
+                    next_buttons[0].click()
 
         xpath = ('//table[@class="oe_list_content"]/tbody/tr/'
                  'td[@data-field="{}" and text()="{}"]'.format(
