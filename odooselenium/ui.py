@@ -475,7 +475,7 @@ class OdooUI(object):
         field = self.webdriver.find_element_by_id(field_id)
         return field
 
-    def enter_data(self, field, model, data, search_column=None,
+    def enter_data(self, field, model, data, clear=True, search_column=None,
                    in_dialog=False):
         """Enter data into a field. The type of field will be determined.
 
@@ -500,7 +500,7 @@ class OdooUI(object):
             elem_type = input_field.get_attribute('type')
             if (elem_type == 'text' and
                     elem_class in ['', 'oe_datepicker_master']):
-                self.write_in_element(field, model, data)
+                self.write_in_element(field, model, data, clear)
             elif (elem_type == 'text'
                     and elem_class == 'ui-autocomplete-input'):
                 if isinstance(data, list):
@@ -515,6 +515,8 @@ class OdooUI(object):
             else:
                 raise NotImplementedError(
                     "I don't know how to handle {}".format(field))
+        elif input_field.tag_name == 'textarea':
+            self.write_in_element(field, model, data, clear)
 
     def wizard_screen(self, config_data, next_button="action_next",
                       timeout=30):
@@ -529,6 +531,7 @@ class OdooUI(object):
         for config_item in config_data:
             self.enter_data(config_item['field'], config_item['model'],
                             config_item['value'],
+                            config_item.get('clear', True),
                             config_item.get('search_column'), True)
 
         button = self._get_bt_testing_element(next_button, last=True)
