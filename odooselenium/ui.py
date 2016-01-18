@@ -518,24 +518,51 @@ class OdooUI(object):
         elem = self.webdriver.find_element_by_xpath(xpath)
         return elem.get_attribute('data-id')
 
+    def _get_autocomplete_dropdown_items(self, field_name, in_dialog):
+        self.open_text_dropdown(field_name, in_dialog)
+        menu_items_xpath = ('//ul[contains(@class, "ui-autocomplete")]/'
+                            'li[contains(@class, "ui-menu-item")]/a')
+        menu_items = self.webdriver.find_elements_by_xpath(menu_items_xpath)
+
+        return menu_items
+
     def search_text_dropdown(self, field_name, column_title, value, in_dialog):
         """Search through a text dropdown. If the value is already in the
         dropdown, click it. If not, go to the search form via the Search
         More... item."""
 
-        self.open_text_dropdown(field_name, in_dialog)
-        menu_items_xpath = ('//ul[contains(@class, "ui-autocomplete")]/'
-                            'li[contains(@class, "ui-menu-item")]/a')
-        menu_items = self.webdriver.find_elements_by_xpath(menu_items_xpath)
+        menu_items = self._get_autocomplete_dropdown_items(field_name,
+                                                           in_dialog)
         try:
             elem = next(e for e in menu_items if e.text == value)
             elem.click()
             return
         except StopIteration:
-            elem = next(e for e in menu_items if e.text == 'Search More...')
-            with self.wait_for_ajax_load():
-                elem.click()
+            self.search_more(menu_items, column_title, value)
 
+    def create_from_text_dropdown(self, field_name, in_dialog, config_data):
+        """Create a new item in an autocomplete text field via the Create and
+        Edit option"""
+        menu_items = self._get_autocomplete_dropdown_items(field_name,
+                                                           in_dialog)
+        elem = next(e for e in menu_items if e.text == 'Create and Edit...')
+        with self.wait_for_ajax_load():
+            elem.click()
+        self.wizard_screen(config_data,
+                           next_button="oe_form_button_save_and_close")
+
+    def search_more(self, menu_items, column_title, value):
+        """Search for an element in an autocomplete text field via the Search
+        More option.
+
+        @param menu_items: a list of the menu items in the dropdown
+        @param column_title: the title of the column in which to search in the
+                             subsequent dialog
+        @param value: the value to search for
+        """
+        elem = next(e for e in menu_items if e.text == 'Search More...')
+        with self.wait_for_ajax_load():
+            elem.click()
         search_field = self._get_data_id_from_column_title(column_title)
         with self.wait_for_ajax_load():
             self.click_list_column(search_field, value)
