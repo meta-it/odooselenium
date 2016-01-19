@@ -1,6 +1,7 @@
 """Python bindings to Odoo's user interface (UI) driven by Selenium."""
 import contextlib
 import re
+import time
 import urlparse
 
 from selenium.common.exceptions import NoSuchElementException
@@ -462,6 +463,7 @@ class OdooUI(object):
                                                                   model_name))
         elem = self.wait_for_visible_element_by_xpath(xpath)
         elem.click()
+        time.sleep(0.5)
 
     def get_edit_field_from_label_text(self, label_text):
         """Get the editable field which belongs to a label.
