@@ -167,7 +167,7 @@ class OdooUI(object):
                     By.CSS_SELECTOR,
                     ".oe_secondary_submenu .oe_menu_text"
                 )
-                for menu in menus:
+                for menu in menus[::-1]:
                     if menu.text == searched_menu:
                         if menu_parts:
                             menu.click()
