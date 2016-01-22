@@ -273,6 +273,18 @@ class OdooUI(object):
         alert = self.webdriver.switch_to_alert()
         alert.accept()
 
+    def select_list_items(self, data_field, column_value):
+        """Select items in a list view where the specified data_field has the
+        specified column_value"""
+
+        xpath = ('//table[@class="oe_list_content"]/tbody/tr/'
+                 'td[@data-field="{}" and text()="{}"]/../'
+                 'th[@class="oe_list_record_selector"]/input'.format(
+                     data_field, column_value))
+        checkboxes = self.webdriver.find_elements_by_xpath(xpath)
+        for checkbox in checkboxes:
+            checkbox.click()
+
     def get_rows_from_list(self, data_field=None, column_value=None):
         """Get the values of all rows having a specific column value.
         If data_field and column_value are not specified, get all rows."""
@@ -394,18 +406,6 @@ class OdooUI(object):
             '//button[@class="oe_button oe_form_button oe_highlight"]')
         with self.wait_for_ajax_load(timeout):
             btn.click()
-
-    def select_list_items(self, data_field, column_value):
-        """Select items in a list view where the specified data_field has the
-        specified column_value"""
-
-        xpath = ('//table[@class="oe_list_content"]/tbody/tr/'
-                 'td[@data-field="{}" and text()="{}"]/../'
-                 'th[@class="oe_list_record_selector"]/input'.format(
-                     data_field, column_value))
-        checkboxes = self.webdriver.find_elements_by_xpath(xpath)
-        for checkbox in checkboxes:
-            checkbox.click()
 
     def switch_to_view(self, view_name):
         """Switch to list, form or kanban view
@@ -574,7 +574,7 @@ class OdooUI(object):
             elem.click()
             return
         except StopIteration:
-            self.search_more(menu_items, column_title, value)
+            self._search_more(menu_items, column_title, value)
 
     def create_from_text_dropdown(self, field_name, model, in_dialog,
                                   config_data):
@@ -589,7 +589,7 @@ class OdooUI(object):
         self.wizard_screen(config_data,
                            next_button="oe_form_button_save_and_close")
 
-    def search_more(self, menu_items, column_title, value):
+    def _search_more(self, menu_items, column_title, value):
         """Search for an element in an autocomplete text field via the Search
         More option.
 
@@ -624,10 +624,3 @@ class OdooUI(object):
                     raise
 
         return elem
-
-    def switch_tab(self, tab_text):
-        xpath = '//li[@role="tab"]/a[normalize-space(text())="{}"]'.format(
-            tab_text)
-        tab = self.wait_for_visible_element_by_xpath(xpath)
-        with self.wait_for_ajax_load():
-            tab.click()
