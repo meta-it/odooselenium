@@ -505,8 +505,8 @@ class OdooUI(object):
             if (elem_type == 'text' and
                     elem_class in ['', 'oe_datepicker_master']):
                 self.write_in_element(field, model, data, clear)
-            elif (elem_type == 'text'
-                    and elem_class == 'ui-autocomplete-input'):
+            elif (elem_type == 'text' and
+                    elem_class == 'ui-autocomplete-input'):
                 if isinstance(data, list):
                     self.create_from_text_dropdown(field, model, in_dialog,
                                                    data)
