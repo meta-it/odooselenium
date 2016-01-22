@@ -167,7 +167,7 @@ class OdooUI(object):
                     By.CSS_SELECTOR,
                     ".oe_secondary_submenu .oe_menu_text"
                 )
-                for menu in menus[::-1]:
+                for menu in menus:
                     if menu.text == searched_menu:
                         if menu_parts:
                             menu.click()
@@ -357,13 +357,15 @@ class OdooUI(object):
                 pager_status_xpath = '//span[@class="oe_list_pager_state"]'
                 pager_status = self.webdriver.find_element_by_xpath(
                     pager_status_xpath)
-                status_match = re.match(PAGER_STATUS_REX,
-                                        pager_status.text).groupdict()
-                if status_match['last'] == status_match['total']:
-                    raise RuntimeError('Could not find row with {}'.format(
-                        value))
-                else:
-                    next_buttons[0].click()
+
+                match = re.match(PAGER_STATUS_REX, pager_status.text)
+
+                if match:
+                    status_match = match.groupdict()
+                    if status_match['last'] == status_match['total']:
+                        raise RuntimeError('Could not find row with {}'.format(
+                            value))
+                next_buttons[0].click()
 
         xpath = ('//table[@class="oe_list_content"]/tbody/tr/'
                  'td[@data-field="{}" and text()="{}"]'.format(
