@@ -322,7 +322,8 @@ class OdooUI(object):
         items"""
 
         more_button = self.wait_for_visible_element_by_xpath(
-            '//button[normalize-space(text())="More"]')
+            '//button[normalize-space(text())="More" and '
+            'not(ancestor::div[@style="display: none;"])]')
         more_button.click()
         item_link = self.wait_for_visible_element_by_xpath(
             '//ul[@class="oe_dropdown_menu oe_opened"]/li/a['
@@ -492,8 +493,7 @@ class OdooUI(object):
         input_field = self._get_bt_testing_element(field, model)
 
         if input_field.tag_name == 'select':
-            dropdown_xpath = ('//div[@class="modal-content openerp"]//'
-                              'select[@data-bt-testing-name="{}" and '
+            dropdown_xpath = ('//select[@data-bt-testing-name="{}" and '
                               '@data-bt-testing-model_name="{}"]/'
                               'option[normalize-space('
                               'text())="{}"]'.format(field, model, data))
