@@ -2,8 +2,7 @@
     [
         {"field": "charts", "model": "account.installer", "value": "Belgium - Accounting"},
         {"field": "company_id", "model": "account.installer", "value": "Your Company"},
-        {"field": "date_start", "model": "account.installer", "value": "01/01/2217"},
-        {"field": "date_stop", "model": "account.installer", "value": "12/31/2217"},
+        {"field": "date_start", "model": "account.installer", "value": "01/01/2016"},
         {"field": "period", "model": "account.installer", "value": "Monthly"}
     ],
     [
