@@ -244,8 +244,15 @@ class OdooUI(object):
         with self.wait_for_ajax_load(timeout):
             visible_buttons[0].click()
 
+    def add_item_to_form_kanban(self, timeout=10):
+        xpath = '//button[@data-bt-testing-button="oe_kanban_button_new"]'
+        self._add_item_to_form(xpath, timeout)
+
     def add_item_to_form_table(self, timeout=10):
         xpath = '//*[@class="oe_form_field_one2many_list_row_add"]/a'
+        self._add_item_to_form(xpath, timeout)
+
+    def _add_item_to_form(self, xpath, timeout):
         add_links = self.webdriver.find_elements_by_xpath(xpath)
         visible_links = [l for l in add_links if l.is_displayed()]
         if len(visible_links) != 1:
@@ -421,29 +428,38 @@ class OdooUI(object):
         button = self.wait_for_visible_element_by_xpath(xpath)
         button.click()
 
-    def _get_bt_testing_element(self, field_name, model_name=None, last=False):
+    def _get_bt_testing_element(self, field_name, model_name=None,
+                                in_dialog=False, last=False):
+        if in_dialog:
+            xpath = '//div[@class="modal-content openerp"]'
+        else:
+            xpath = ''
+
         if model_name:
-            xpath = ('//*[@data-bt-testing-name="{}" and '
-                     '@data-bt-testing-model_name="{}"]'.format(field_name,
+            xpath = ('{}//*[@data-bt-testing-name="{}" and '
+                     '@data-bt-testing-model_name="{}"]'.format(xpath,
+                                                                field_name,
                                                                 model_name))
         else:
-            xpath = '//*[@data-bt-testing-name="{}"]'.format(field_name)
+            xpath = '{}//*[@data-bt-testing-name="{}"]'.format(xpath,
+                                                               field_name)
 
         if last:
             xpath = '({})[last()]'.format(xpath)
 
         return self.wait_for_visible_element_by_xpath(xpath)
 
-    def write_in_element(self, field_name, model_name, text, clear=True):
+    def write_in_element(self, field_name, model_name, text, clear=True,
+                         in_dialog=False):
         """Writes text to an element
         @param field_name: data-bt-testing-name on the element
         @param model_name: the data-bt-testing-model_name on the element
         @param text: text to enter into the field
         @clear: whether to clear the field first
         @param clear: whether to clear the field first
-        @param in_dialog: whether the text field is part of a modal dialog
         """
-        elem = self._get_bt_testing_element(field_name, model_name)
+        elem = self._get_bt_testing_element(field_name, model_name,
+                                            in_dialog=in_dialog)
 
         if clear:
             elem.clear()
@@ -499,7 +515,8 @@ class OdooUI(object):
         @param search_column: the column title to search in the Search form in
                               case of an autocomplete text field
         """
-        input_field = self._get_bt_testing_element(field, model)
+        input_field = self._get_bt_testing_element(field, model,
+                                                   in_dialog=in_dialog)
 
         if input_field.tag_name == 'select':
             dropdown_xpath = ('//select[@data-bt-testing-name="{}" and '
@@ -513,7 +530,7 @@ class OdooUI(object):
             elem_type = input_field.get_attribute('type')
             if (elem_type == 'text' and
                     elem_class in ['', 'oe_datepicker_master']):
-                self.write_in_element(field, model, data, clear)
+                self.write_in_element(field, model, data, clear, in_dialog)
             elif (elem_type == 'text' and
                     elem_class == 'ui-autocomplete-input'):
                 if isinstance(data, list):
@@ -529,7 +546,7 @@ class OdooUI(object):
                 raise NotImplementedError(
                     "I don't know how to handle {}".format(field))
         elif input_field.tag_name == 'textarea':
-            self.write_in_element(field, model, data, clear)
+            self.write_in_element(field, model, data, clear, in_dialog)
 
     def wizard_screen(self, config_data, next_button="action_next",
                       timeout=30):
