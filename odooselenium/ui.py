@@ -169,8 +169,11 @@ class OdooUI(object):
                 )
                 for menu in menus:
                     if menu.text == searched_menu:
+                        menu_parent = menu.find_element_by_xpath('ancestor::a')
                         if menu_parts:
-                            menu.click()
+                            if ('oe_menu_opened' not in
+                                    menu_parent.get_attribute('class')):
+                                menu.click()
                             searched_menu = menu_parts.pop(0)
                         else:
                             view_link = menu
