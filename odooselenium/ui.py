@@ -480,6 +480,12 @@ class OdooUI(object):
         field = self.webdriver.find_element_by_id(field_id)
         return field
 
+    def get_value(self, field, model):
+        """Get the value of a field"""
+
+        field = self._get_bt_testing_element(field, model)
+        return field.text
+
     def enter_data(self, field, model, data, clear=True, search_column=None,
                    in_dialog=False):
         """Enter data into a field. The type of field will be determined.
