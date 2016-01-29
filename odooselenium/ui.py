@@ -503,7 +503,13 @@ class OdooUI(object):
         """Get the value of a field"""
 
         field = self._get_bt_testing_element(field, model)
-        return field.text
+        if field.get_attribute('type') == 'checkbox':
+            return field.is_selected()
+        elif field.tag_name == 'select':
+            field = ui.Select(field)
+            return field.first_selected_option.text
+        else:
+            return field.get_attribute('value')
 
     def enter_data(self, field, model, data, clear=True, search_column=None,
                    in_dialog=False):
