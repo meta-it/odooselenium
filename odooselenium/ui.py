@@ -248,8 +248,13 @@ class OdooUI(object):
         xpath = '//button[@data-bt-testing-button="oe_kanban_button_new"]'
         self._add_item_to_form(xpath, timeout)
 
-    def add_item_to_form_table(self, timeout=10):
-        xpath = '//*[@class="oe_form_field_one2many_list_row_add"]/a'
+    def add_item_to_form_table(self, header=None, timeout=10):
+        xpath = ('//*[@class="oe_form_field_one2many_list_row_add" or '
+                 '@class="oe_form_field_many2many_list_row_add"]/a')
+        if header:
+            xpath = ('//div[normalize-space(text())="{}"]/'
+                     'following-sibling::*[1]{}'.format(header, xpath))
+            xpath = '{}'.format(xpath)
         self._add_item_to_form(xpath, timeout)
 
     def _add_item_to_form(self, xpath, timeout):
