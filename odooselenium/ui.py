@@ -398,7 +398,19 @@ class OdooUI(object):
         xpath = ('//table[@class="oe_list_content"]/tbody/tr/'
                  'td[@data-field="{}" and text()="{}"]'.format(
                      data_field, value))
-        elem = self.wait_for_visible_element_by_xpath(xpath)
+
+        attempts = 2
+        elem = None
+        counter = 0
+        while not elem and counter < attempts:
+            elems = self.webdriver.find_elements_by_xpath(xpath)
+            try:
+                elem = next(e for e in elems if e.is_displayed())
+            except StopIteration:
+                counter += 1
+                time.sleep(10)
+        if not elem:
+            raise RuntimeError('Could not find row with {}'.format(value))
         with self.wait_for_ajax_load():
             elem.click()
 
