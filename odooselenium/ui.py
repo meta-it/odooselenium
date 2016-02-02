@@ -4,6 +4,7 @@ import re
 import time
 import urlparse
 
+from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
@@ -244,6 +245,40 @@ class OdooUI(object):
         with self.wait_for_ajax_load(timeout):
             visible_buttons[0].click()
 
+    def delete_item_from_form_kanban(self, value, timeout=10):
+        xpath = ('//a[contains(@class, "oe_kanban_action") and text()="{}"]'
+                 '/ancestor::div[contains(@class, "oe_kanban_record")]'
+                 '//a[contains(@class, "oe_kanban_action") and '
+                 '@data-type="delete"]'.format(value))
+
+        self._delete_item_from_form(xpath, timeout)
+
+    def delete_item_from_form_list(self, column, value, header=None,
+                                   timeout=10):
+        xpath = ('//table[@class="oe_list_content"]/tbody/tr/'
+                 'td[@data-field="{}" and text()="{}"]/following-sibling::'
+                 'td[@class="oe_list_record_delete"]'.format(column, value))
+
+        if header:
+            xpath = ('//div[normalize-space(text())="{}"]/'
+                     'following-sibling::*[1]{}'.format(header, xpath))
+
+        self._delete_item_from_form(xpath, timeout)
+
+    def _delete_item_from_form(self, xpath, timeout):
+        delete_buttons = self.webdriver.find_elements_by_xpath(xpath)
+
+        visible_buttons = [b for b in delete_buttons if b.is_displayed()]
+        if len(visible_buttons) < 1:
+            raise RuntimeError("No delete buttons found")
+        for button in visible_buttons:
+            with self.wait_for_ajax_load(timeout):
+                button.click()
+                try:
+                    self.webdriver.switch_to.alert.accept()
+                except NoAlertPresentException:
+                    pass
+
     def add_item_to_form_kanban(self, timeout=10):
         xpath = '//button[@data-bt-testing-button="oe_kanban_button_new"]'
         self._add_item_to_form(xpath, timeout)
@@ -254,7 +289,6 @@ class OdooUI(object):
         if header:
             xpath = ('//div[normalize-space(text())="{}"]/'
                      'following-sibling::*[1]{}'.format(header, xpath))
-            xpath = '{}'.format(xpath)
         self._add_item_to_form(xpath, timeout)
 
     def _add_item_to_form(self, xpath, timeout):
@@ -285,8 +319,7 @@ class OdooUI(object):
     def delete_from_list(self):
         """Delete items selected with select_list_items"""
         self.click_more_item('Delete')
-        alert = self.webdriver.switch_to_alert()
-        alert.accept()
+        self.webdriver.switch_to.alert.accept()
 
     def select_list_items(self, data_field, column_value):
         """Select items in a list view where the specified data_field has the
