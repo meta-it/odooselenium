@@ -253,6 +253,45 @@ class OdooUI(object):
 
         self._delete_item_from_form(xpath, timeout)
 
+    def get_values_from_form_kanban(self):
+        """Get the displayed values of a form sub-kanban"""
+
+        xpath = ('//div[@class="oe_form"]//div[contains(@class, '
+                 '"oe_kanban_record")]//table[@class="oe_kanban_table"]//a')
+
+        elements = self.webdriver.find_elements_by_xpath(xpath)
+
+        return [e.text for e in elements if e.is_displayed()]
+
+    def get_rows_from_form_list(self, header=None):
+        """Get the values of all rows on a form sub-list"""
+
+        if header:
+            columns_xpath = ('//div[normalize-space(text())="{}"]'
+                             '//following-sibling::div[1]//table[@class="'
+                             'oe_list_content"]/thead/'
+                             'tr[@class="oe_list_header_columns"]/th'
+                             .format(header))
+        else:
+            columns_xpath = ('//div[@class="oe_form"]//table[@class="'
+                             'oe_list_content" and not(ancestor::*[@style='
+                             '"display: none;"])]/thead'
+                             '/tr[@class="oe_list_header_columns"]/th')
+
+        headers_xpath = '{}/div'.format(columns_xpath)
+
+        if header:
+            xpath = ('//div[normalize-space(text())="{}"]'
+                     '/following-sibling::*[1]//'
+                     'table[@class="oe_list_content"]/tbody/tr/td'.format(
+                         header))
+        else:
+            xpath = ('//div[@class="oe_form"]//table[@class="oe_list_content" '
+                     'and not(ancestor::*[@style="display: none;"])]/tbody/tr'
+                     '/td')
+
+        return self._get_rows_from_list(columns_xpath, headers_xpath, xpath)
+
     def delete_item_from_form_list(self, column, value, header=None,
                                    timeout=10):
         xpath = ('//table[@class="oe_list_content"]/tbody/tr/'
@@ -337,13 +376,10 @@ class OdooUI(object):
         """Get the values of all rows having a specific column value.
         If data_field and column_value are not specified, get all rows."""
 
-        headers_xpath = ('//table[@class="oe_list_content"]/thead/tr['
+        columns_xpath = ('//table[@class="oe_list_content"]/thead/tr['
                          '@class="oe_list_header_columns"]/th[starts-with('
-                         '@class, "oe_list_header_")]/div')
-
-        header_values = [elem.text for elem in
-                         self.webdriver.find_elements_by_xpath(headers_xpath)
-                         if elem.is_displayed()]
+                         '@class, "oe_list_header_")]')
+        headers_xpath = '{}/div'.format(columns_xpath)
 
         if data_field and column_value:
             xpath = ('//table[@class="oe_list_content"]/tbody/tr/td['
@@ -352,10 +388,24 @@ class OdooUI(object):
         else:
             xpath = '//table[@class="oe_list_content"]/tbody/tr/td'
 
+        return self._get_rows_from_list(columns_xpath, headers_xpath, xpath)
+
+    def _get_rows_from_list(self, columns_xpath, headers_xpath, values_xpath):
+        columns = [elem for elem in
+                   self.webdriver.find_elements_by_xpath(columns_xpath)
+                   if elem.is_displayed()]
+
+        chunk_size = len(columns)
+
+        header_values = [elem.text for elem in
+                         self.webdriver.find_elements_by_xpath(headers_xpath)
+                         if elem.is_displayed()]
+
+        header_values += ['Untitled{}'.format(x) for x
+                          in xrange(chunk_size - len(header_values))]
         values = []
 
-        all_values = self.webdriver.find_elements_by_xpath(xpath)
-        chunk_size = len(header_values)
+        all_values = self.webdriver.find_elements_by_xpath(values_xpath)
         lines = [all_values[i:i + chunk_size] for i in xrange(0,
                                                               len(all_values),
                                                               chunk_size)]
