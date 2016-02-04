@@ -497,18 +497,24 @@ class OdooUI(object):
         with self.wait_for_ajax_load():
             elem.click()
 
-    def install_module(self, module_name, timeout=60, upgrade=False):
+    def install_module(self, module_name, column='shortdesc', timeout=60,
+                       upgrade=False):
         """ Install the specified module. You need to be on the Settings page.
         This will NOT go through the setup wizard.
-        If upgrade is True, will click the Upgrade button if the module is
-        already installed."""
+
+        @param module_name: the name of the module
+        @param column: in which column to find the module_name. The default
+                       (shortdesc) is the human-readable description.
+        @param timeout: max. seconds to wait for module installation
+        @param upgrade: whether to click the upgrade button if the module is
+                        already installed"""
 
         with self.wait_for_ajax_load():
             self.switch_to_view('list')
 
         self.clear_search_facets()
         self.search_for(module_name)
-        row_data = self.get_rows_from_list('shortdesc', module_name)
+        row_data = self.get_rows_from_list(column, module_name)
         if row_data[0]['Status'] == 'Installed' and upgrade is False:
             return
 
