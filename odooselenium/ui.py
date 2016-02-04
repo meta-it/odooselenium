@@ -518,7 +518,7 @@ class OdooUI(object):
         if row_data[0]['Status'] == 'Installed' and upgrade is False:
             return
 
-        self.click_list_column('shortdesc', module_name)
+        self.click_list_column(column, module_name)
         btn = self.wait_for_visible_element_by_xpath(
             '//button[@class="oe_button oe_form_button oe_highlight"]')
         with self.wait_for_ajax_load(timeout):
