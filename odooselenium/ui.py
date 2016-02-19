@@ -649,8 +649,12 @@ class OdooUI(object):
                     self.create_from_text_dropdown(field, model, in_dialog,
                                                    data)
                 else:
-                    self.search_text_dropdown(field, model, search_column,
-                                              data, in_dialog)
+                    if data == '':
+                        field = self._get_bt_testing_element(field, model)
+                        field.clear()
+                    else:
+                        self.search_text_dropdown(field, model, search_column,
+                                                  data, in_dialog)
             elif elem_type == 'checkbox':
                 if input_field.is_selected() != data:
                     self.toggle_checkbox(field, model)
