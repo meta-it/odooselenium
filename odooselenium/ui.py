@@ -406,6 +406,7 @@ class OdooUI(object):
         values = []
 
         all_values = self.webdriver.find_elements_by_xpath(values_xpath)
+        all_values = [v for v in all_values if v.is_displayed()]
         lines = [all_values[i:i + chunk_size] for i in xrange(0,
                                                               len(all_values),
                                                               chunk_size)]
