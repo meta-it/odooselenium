@@ -650,7 +650,7 @@ class OdooUI(object):
         elif input_field.tag_name == 'input':
             elem_class = input_field.get_attribute('class')
             elem_type = input_field.get_attribute('type')
-            if (elem_type == 'text' and
+            if (elem_type in ['text', 'password'] and
                     elem_class in ['', 'oe_datepicker_master']):
                 self.write_in_element(field, model, data, clear, in_dialog)
             elif (elem_type == 'text' and
