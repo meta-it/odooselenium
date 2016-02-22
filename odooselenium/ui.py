@@ -445,10 +445,14 @@ class OdooUI(object):
             input_field.send_keys(search_string)
             input_field.send_keys(Keys.ENTER)
 
-    def click_list_column(self, data_field, value):
+    def click_list_column(self, data_field, value, click_column=None):
         """Click the first item with the specified value in the specified
         column in a list. Cycle through multiple pages if they're available and
-        it is necessary."""
+        it is necessary.
+        If click_column is not specified, find the cell under data_field with
+        contains value and click it.
+        If click_column is specified, find the cell under data_field which
+        contains value, then click click_column in the same row."""
 
         rows = []
         while not rows:
@@ -494,6 +498,12 @@ class OdooUI(object):
                 time.sleep(10)
         if not elem:
             raise RuntimeError('Could not find row with {}'.format(value))
+
+        if click_column:
+            elem = elem.find_element(by='xpath',
+                                     value='following-sibling::td['
+                                     '@data-field="{}"]'.format(click_column))
+
         with self.wait_for_ajax_load():
             elem.click()
 
