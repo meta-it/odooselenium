@@ -160,6 +160,7 @@ class OdooUI(object):
             '.oe_secondary_menu')
         menu_parts = view_name.split(u'/')
         searched_menu = menu_parts.pop(0)
+        previous_parts = set()
         # Click on the view requested
         view_link = None
         for sec_menu in secondary_menus:
@@ -169,14 +170,16 @@ class OdooUI(object):
                     ".oe_secondary_submenu .oe_menu_text"
                 )
                 for menu in menus:
-                    if menu.text == searched_menu:
+                    if menu.text in [searched_menu] + list(previous_parts):
                         menu_parent = menu.find_element_by_xpath('ancestor::a')
-                        if menu_parts:
+                        if menu_parts or menu.text in previous_parts:
                             if ('oe_menu_opened' not in
                                     menu_parent.get_attribute('class')):
                                 menu.click()
+                        if menu.text == searched_menu and menu_parts:
+                            previous_parts.add(searched_menu)
                             searched_menu = menu_parts.pop(0)
-                        else:
+                        elif menu.text == searched_menu and not menu_parts:
                             view_link = menu
                             break
                 break
