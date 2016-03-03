@@ -698,12 +698,17 @@ class OdooUI(object):
         with self.wait_for_ajax_load(timeout):
             button.click()
 
-    def _get_data_id_from_column_title(self, column_title):
+    def _get_data_id_from_column_title(self, column_title, dialog=False):
         """Get the data-id attribute based on a column title"""
 
-        xpath = ('//table[@class="oe_list_content"]/thead/tr'
-                 '[@class="oe_list_header_columns"]/th/div[normalize-space('
-                 'text())="{}"]/..'.format(column_title))
+        if dialog:
+            xpath = '//div[@class="oe_popup_list"]'
+        else:
+            xpath = ''
+
+        xpath += ('//table[@class="oe_list_content"]/thead/tr'
+                  '[@class="oe_list_header_columns"]/th/div[normalize-space('
+                  'text())="{}"]/..'.format(column_title))
 
         elem = self.webdriver.find_element_by_xpath(xpath)
         return elem.get_attribute('data-id')
@@ -757,7 +762,7 @@ class OdooUI(object):
         elem = next(e for e in menu_items if e.text == 'Search More...')
         with self.wait_for_ajax_load():
             elem.click()
-        search_field = self._get_data_id_from_column_title(column_title)
+        search_field = self._get_data_id_from_column_title(column_title, True)
         with self.wait_for_ajax_load():
             self.click_list_column(search_field, value)
 
