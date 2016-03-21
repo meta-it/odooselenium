@@ -785,3 +785,11 @@ class OdooUI(object):
                     raise
 
         return elem
+
+    def click_translate(self, field_name, model):
+        """Click the translate button that goes with the specified field"""
+        elem = self._get_bt_testing_element(field_name, model)
+        translate_button = elem.find_element_by_xpath(
+            'following-sibling::img[contains(@class, "oe_field_translate")]')
+        with self.wait_for_ajax_load():
+            translate_button.click()
