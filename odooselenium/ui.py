@@ -225,11 +225,29 @@ class OdooUI(object):
                             button.click()
                         break
 
+    def click_button_by_model(self, model_name, name, timeout=10):
+        button = ui.WebDriverWait(self.webdriver, timeout).until(
+            expected_conditions.presence_of_element_located((
+                By.XPATH,
+                "//button["
+                "@data-bt-testing-model_name='{}' and "
+                "@data-bt-testing-name='{}']".format(
+                    model_name, name))
+            )
+        )
+        button.click()
+
     def click_edit(self, timeout=10):
         self.click_ajax_load_button('oe_form_button_edit', timeout=timeout)
 
+    def click_create(self, timeout=10):
+        self.click_ajax_load_button('oe_list_add', timeout=timeout)
+
+    def click_save(self, timeout=10):
+        self.click_ajax_load_button('oe_form_button_save', timeout=timeout)
+
     def click_apply(self, timeout=10):
-        self.click_ajax_load_button('execute', timeout=timeout)
+        s.click_ajax_load_button('execute', timeout=timeout)
 
     def click_ajax_load_button(self, data_bt_testing_name,
                                data_bt_testing_model_name=None, timeout=10):
@@ -243,8 +261,10 @@ class OdooUI(object):
 
         buttons = self.webdriver.find_elements_by_xpath(xpath)
         visible_buttons = [b for b in buttons if b.is_displayed()]
-        if len(visible_buttons) != 1:
-            raise RuntimeError("Couldn't find exactly one button to click")
+        if len(visible_buttons) == 0:
+            raise RuntimeError("Couldn't find one button to click")
+        elif len(visible_buttons) != 1:
+            raise RuntimeError("Find more than one button to click")
         with self.wait_for_ajax_load(timeout):
             visible_buttons[0].click()
 
@@ -437,6 +457,25 @@ class OdooUI(object):
         clear_searchview_button = self.wait_for_visible_element_by_xpath(xpath)
         with self.wait_for_ajax_load():
             clear_searchview_button.click()
+    
+    def _get_autocomplete_search_items(self):
+        menu_items_xpath = ('//div[contains(@class, "oe-autocomplete")]/'
+                            'ul/li/span/em')
+        menu_items = self.webdriver.find_elements_by_xpath(menu_items_xpath)
+        return menu_items
+    
+    def search_detailed(self, contains, type):
+        search_input = self.webdriver.find_elements_by_css_selector(
+            '.oe_searchview_facets .oe_searchview_input')[-1]
+        search_input.send_keys(contains)
+        menu_items = self._get_autocomplete_search_items()
+        try:
+            elem=next(e for e in menu_items if e.text == type)
+            elem.click()
+            return
+        except StopIteration:
+            assert False, "Search type not found" 
+        search_input.send_keys(Keys.TAB)
 
     def search_for(self, search_string):
         xpath = ('//div[@class="oe_searchview_facets"]/'
@@ -448,7 +487,7 @@ class OdooUI(object):
             input_field.click()
             input_field.send_keys(search_string)
             input_field.send_keys(Keys.ENTER)
-
+    
     def click_list_column(self, data_field, value, click_column=None):
         """Click the first item with the specified value in the specified
         column in a list. Cycle through multiple pages if they're available and
