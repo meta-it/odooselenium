@@ -226,16 +226,17 @@ class OdooUI(object):
                         break
 
     def click_button_by_model(self, model_name, name, timeout=10):
-        button = ui.WebDriverWait(self.webdriver, timeout).until(
-            expected_conditions.presence_of_element_located((
-                By.XPATH,
-                "//button["
-                "@data-bt-testing-model_name='{}' and "
-                "@data-bt-testing-name='{}']".format(
-                    model_name, name))
+        with self.wait_for_ajax_load():
+            button = ui.WebDriverWait(self.webdriver, timeout).until(
+                expected_conditions.presence_of_element_located((
+                    By.XPATH,
+                    "//button["
+                    "@data-bt-testing-model_name='{}' and "
+                    "@data-bt-testing-name='{}']".format(
+                        model_name, name))
+                )
             )
-        )
-        button.click()
+            button.click()
 
     def click_edit(self, timeout=10):
         self.click_ajax_load_button('oe_form_button_edit', timeout=timeout)
