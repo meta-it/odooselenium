@@ -470,7 +470,7 @@ class OdooUI(object):
         clear_searchview_button = self.wait_for_visible_element_by_xpath(xpath)
         with self.wait_for_ajax_load():
             clear_searchview_button.click()
-
+ 
     def _get_autocomplete_search_items(self):
         menu_items_xpath = ('//div[contains(@class, "oe-autocomplete")]/'
                             'ul/li/span/em')
@@ -843,94 +843,3 @@ class OdooUI(object):
             'following-sibling::img[contains(@class, "oe_field_translate")]')
         with self.wait_for_ajax_load():
             translate_button.click()
-
-
-
-    def page(self, name):
-        """ click on the given page if found """
-        self.go_to_module(name)
-        return OdooPage(self)
-
-
-    def view(self, model, type='form'):
-        """ """
-        obj = FormView
-        if type == 'tree':
-            obj = TreeView
-
-        return obj(self, model)
-
-
-class OdooPage():
-    def __init__(self, ui):
-        self.ui = ui
-    def menu(self, name):
-        self.ui.go_to_view(name)
-
-class View(object):
-    def __init__(self, ui, model, *args, **kwargs):
-        self.ui = ui
-        self.model = model
-
-    def get_field(self, field_name, model=None):
-        return self.ui.webdriver.find_element_by_xpath(
-            "//*["
-            "@data-bt-testing-model_name='{}' and "
-            "@data-bt-testing-name='{}']".format(
-                model if model else self.model, field_name))
-    def fill(self, **kwargs):
-        """ Fill the current view with kwargs """
-
-        for key, value in kwargs.iteritems():
-            field = self.get_field(key)
-            relational_field = field.get_attribute('data-bt-testing-submodel_name')
-            print '>> key:{} value:{}'.format(key, value)
-
-            print ' is_relation:{}'.format(relational_field)
-            if relational_field:
-                add_link = self.ui.webdriver.find_element_by_css_selector(
-                    '.oe_form_field_one2many_list_row_add a')
-                for element in value:
-                    print "     >> e", element
-                    # click "Add an item link"
-                    add_link.click()
-
-                    for k, v in element.iteritems():
-                        sfield = self.get_field(k, model=relational_field)
-                        sfield.send_keys(v)
-                        if 'ui-autocomplete-input' in sfield.get_attribute('class'):
-                            sfield.send_keys(Keys.DOWN)
-                            sfield.send_keys(Keys.DOWN)
-                            sfield.send_keys(Keys.TAB)
-
-            else:
-                field.send_keys(value)
-                if 'ui-autocomplete-input' in field.get_attribute('class'):
-                    field.send_keys(Keys.DOWN)
-                    field.send_keys(Keys.DOWN)
-                    field.send_keys(Keys.TAB)
-    
-    def click_button(self, name):
-        self.ui.click_ajax_load_button(name)
-
-
-class FormView(View):
-    def __init__(self, ui, model, *args, **kwargs):
-        super(FormView, self).__init__(ui, model, *args, **kwargs)
-    
-    def save(self):
-        self.ui.click_save()
-
-
-class TreeView(View):
-    def __init__(self, ui, model, *args, **kwargs):
-        super(TreeView, self).__init__(ui, model, *args, **kwargs)
-
-    def create(self, **kwargs):
-        """
-        click create, fill form with kwargs and click save 
-        """
-        self.ui.click_create()
-        view = FormView(self.ui, self.model)
-        view.fill(**kwargs)
-        view.save()
