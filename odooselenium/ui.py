@@ -11,6 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support import ui
+from selenium.webdriver.support.ui import WebDriverWait
 
 from odooselenium import wait
 
@@ -872,11 +873,17 @@ class View(object):
         self.model = model
 
     def get_field(self, field_name, model=None):
-        return self.ui.webdriver.find_element_by_xpath(
-            "//*["
-            "@data-bt-testing-model_name='{}' and "
-            "@data-bt-testing-name='{}']".format(
-                model if model else self.model, field_name))
+
+        return WebDriverWait(self.ui.webdriver, 10).until(
+            expected_conditions.presence_of_element_located((
+                By.XPATH,
+                "//*["
+                "@data-bt-testing-model_name='{}' and "
+                "@data-bt-testing-name='{}']".format(
+                    model if model else self.model, field_name)
+            ))
+        )
+
     def fill(self, **kwargs):
         """ Fill the current view with kwargs """
 
