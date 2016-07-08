@@ -883,16 +883,14 @@ class View(object):
         for key, value in kwargs.iteritems():
             field = self.get_field(key)
             relational_field = field.get_attribute('data-bt-testing-submodel_name')
-            print '>> key:{} value:{}'.format(key, value)
 
-            print ' is_relation:{}'.format(relational_field)
             if relational_field:
                 add_link = self.ui.webdriver.find_element_by_css_selector(
                     '.oe_form_field_one2many_list_row_add a')
                 for element in value:
-                    print "     >> e", element
                     # click "Add an item link"
-                    add_link.click()
+                    with self.ui.wait_for_ajax_load():
+                        add_link.click()
 
                     for k, v in element.iteritems():
                         sfield = self.get_field(k, model=relational_field)
