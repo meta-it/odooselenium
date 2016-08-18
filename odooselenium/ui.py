@@ -11,6 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support import ui
+from selenium.webdriver.support.ui import WebDriverWait
 
 from odooselenium import wait
 
@@ -225,26 +226,59 @@ class OdooUI(object):
                             button.click()
                         break
 
+    def click_button_by_model(self, model_name, name, timeout=10):
+        with self.wait_for_ajax_load():
+            button = ui.WebDriverWait(self.webdriver, timeout).until(
+                expected_conditions.presence_of_element_located((
+                    By.XPATH,
+                    "//button["
+                    "@data-bt-testing-model_name='{}' and "
+                    "@data-bt-testing-name='{}']".format(
+                        model_name, name))
+                )
+            )
+            button.click()
+
     def click_edit(self, timeout=10):
         self.click_ajax_load_button('oe_form_button_edit', timeout=timeout)
+
+    def click_create(self, timeout=10):
+        self.click_ajax_load_button('oe_list_add', timeout=timeout)
+
+    def click_save(self, timeout=10):
+        self.click_ajax_load_button('oe_form_button_save', timeout=timeout)
 
     def click_apply(self, timeout=10):
         self.click_ajax_load_button('execute', timeout=timeout)
 
     def click_ajax_load_button(self, data_bt_testing_name,
-                               data_bt_testing_model_name=None, timeout=10):
+                               data_bt_testing_model_name=None,
+                               data_class=None, timeout=10):
         if data_bt_testing_model_name:
-            xpath = ('//button[@data-bt-testing-name="{}" and '
-                     '@data-bt-testing-model_name="{}"]'.format(
-                         data_bt_testing_name, data_bt_testing_model_name))
+            if data_class:
+                xpath = ('//button[@class="{}" and @data-bt-testing-name="{}" '
+                         'and @data-bt-testing-model_name="{}"]'.format(
+                             data_class, data_bt_testing_name,
+                             data_bt_testing_model_name))
+            else:
+                xpath = ('//button[@data-bt-testing-name="{}" and '
+                         '@data-bt-testing-model_name="{}"]'.format(
+                             data_bt_testing_name, data_bt_testing_model_name))
         else:
-            xpath = '//button[@data-bt-testing-name="{}"]'.format(
+            if data_class:
+                xpath = '//button[@class={} and @data-bt-testing-name="{}"]' \
+                    .format(data_class, data_bt_testing_name)
+
+            else:
+                xpath = '//button[@data-bt-testing-name="{}"]'.format(
                     data_bt_testing_name)
 
         buttons = self.webdriver.find_elements_by_xpath(xpath)
         visible_buttons = [b for b in buttons if b.is_displayed()]
-        if len(visible_buttons) != 1:
-            raise RuntimeError("Couldn't find exactly one button to click")
+        if len(visible_buttons) == 0:
+            raise RuntimeError("Couldn't find one button to click")
+        elif len(visible_buttons) != 1:
+            raise RuntimeError("Find more than one button to click")
         with self.wait_for_ajax_load(timeout):
             visible_buttons[0].click()
 
@@ -437,17 +471,34 @@ class OdooUI(object):
         clear_searchview_button = self.wait_for_visible_element_by_xpath(xpath)
         with self.wait_for_ajax_load():
             clear_searchview_button.click()
+ 
+    def _get_autocomplete_search_items(self):
+        menu_items_xpath = ('//div[contains(@class, "oe-autocomplete")]/'
+                            'ul/li/span/em')
+        menu_items = self.webdriver.find_elements_by_xpath(menu_items_xpath)
+        return menu_items
 
-    def search_for(self, search_string):
+    def search_for(self, search_string, type=None):
         xpath = ('//div[@class="oe_searchview_facets"]/'
                  'div[@class="oe_searchview_input"]')
         input_fields = self.webdriver.find_elements_by_xpath(xpath)
-        input_field = next(field for field in input_fields
-                           if field.is_displayed())
-        with self.wait_for_ajax_load():
-            input_field.click()
-            input_field.send_keys(search_string)
-            input_field.send_keys(Keys.ENTER)
+        if type:
+            input_fields.send_keys(search_string)
+            menu_items = self._get_autocomplete_search_items()
+            try:
+                elem = next(e for e in menu_items if e.text == type)
+                elem.click()
+                return
+            except StopIteration:
+                assert False, "Search type not found"
+            input_fields.send_keys(Keys.TAB)
+        else:
+            input_field = next(
+                field for field in input_fields if field.is_displayed())
+            with self.wait_for_ajax_load():
+                input_field.click()
+                input_field.send_keys(search_string)
+                input_field.send_keys(Keys.ENTER)
 
     def click_list_column(self, data_field, value, click_column=None):
         """Click the first item with the specified value in the specified
@@ -793,3 +844,97 @@ class OdooUI(object):
             'following-sibling::img[contains(@class, "oe_field_translate")]')
         with self.wait_for_ajax_load():
             translate_button.click()
+
+
+    def page(self, name):
+        """ click on the given page if found """
+        self.go_to_module(name)
+        return OdooPage(self)
+
+
+    def view(self, model, type='form'):
+        """ """
+        obj = FormView
+        if type == 'tree':
+            obj = TreeView
+
+        return obj(self, model)
+
+
+class OdooPage():
+    def __init__(self, ui):
+        self.ui = ui
+    def menu(self, name):
+        self.ui.go_to_view(name)
+
+class View(object):
+    def __init__(self, ui, model, *args, **kwargs):
+        self.ui = ui
+        self.model = model
+
+    def get_field(self, field_name, model=None):
+
+        return WebDriverWait(self.ui.webdriver, 10).until(
+            expected_conditions.presence_of_element_located((
+                By.XPATH,
+                "//*["
+                "@data-bt-testing-model_name='{}' and "
+                "@data-bt-testing-name='{}']".format(
+                    model if model else self.model, field_name)
+            ))
+        )
+
+    def fill(self, **kwargs):
+        """ Fill the current view with kwargs """
+
+        for key, value in kwargs.iteritems():
+            field = self.get_field(key)
+            relational_field = field.get_attribute('data-bt-testing-submodel_name')
+
+            if relational_field:
+                add_link = self.ui.webdriver.find_element_by_css_selector(
+                    '.oe_form_field_one2many_list_row_add a')
+                for element in value:
+                    # click "Add an item link"
+                    with self.ui.wait_for_ajax_load():
+                        add_link.click()
+
+                    for k, v in element.iteritems():
+                        sfield = self.get_field(k, model=relational_field)
+                        sfield.send_keys(v)
+                        if 'ui-autocomplete-input' in sfield.get_attribute('class'):
+                            sfield.send_keys(Keys.DOWN)
+                            sfield.send_keys(Keys.DOWN)
+                            sfield.send_keys(Keys.TAB)
+
+            else:
+                field.send_keys(value)
+                if 'ui-autocomplete-input' in field.get_attribute('class'):
+                    field.send_keys(Keys.DOWN)
+                    field.send_keys(Keys.DOWN)
+                    field.send_keys(Keys.TAB)
+    
+    def click_button(self, name):
+        self.ui.click_ajax_load_button(name)
+
+
+class FormView(View):
+    def __init__(self, ui, model, *args, **kwargs):
+        super(FormView, self).__init__(ui, model, *args, **kwargs)
+    
+    def save(self):
+        self.ui.click_save()
+
+
+class TreeView(View):
+    def __init__(self, ui, model, *args, **kwargs):
+        super(TreeView, self).__init__(ui, model, *args, **kwargs)
+
+    def create(self, **kwargs):
+        """
+        click create, fill form with kwargs and click save 
+        """
+        self.ui.click_create()
+        view = FormView(self.ui, self.model)
+        view.fill(**kwargs)
+        view.save()
