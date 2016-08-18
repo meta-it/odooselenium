@@ -887,9 +887,16 @@ class View(object):
     def fill(self, **kwargs):
         """ Fill the current view with kwargs """
 
+        # sometimes adding a relational field open a new wizard instead of
+        # the editable tree line.
+        # In this case we need to save the wizard.
+        wizard_to_save = kwargs.pop('wizard_to_save', False)
+
         for key, value in kwargs.iteritems():
+
             field = self.get_field(key)
             relational_field = field.get_attribute('data-bt-testing-submodel_name')
+            datetime_field = 'oe_datepicker_master' in field.get_attribute('class')
 
             if relational_field:
                 add_link = self.ui.webdriver.find_element_by_css_selector(
@@ -901,19 +908,26 @@ class View(object):
 
                     for k, v in element.iteritems():
                         sfield = self.get_field(k, model=relational_field)
-                        sfield.send_keys(v)
-                        if 'ui-autocomplete-input' in sfield.get_attribute('class'):
-                            sfield.send_keys(Keys.DOWN)
-                            sfield.send_keys(Keys.DOWN)
-                            sfield.send_keys(Keys.TAB)
-
+                        with self.ui.wait_for_ajax_load():
+                            sfield.clear()
+                            sfield.send_keys(v)
+                            if 'ui-autocomplete-input' in sfield.get_attribute('class'):
+                                sfield.send_keys(Keys.DOWN)
+                                sfield.send_keys(Keys.DOWN)
+                                sfield.send_keys(Keys.TAB)
+                if wizard_to_save:
+                    self.click_button('oe_form_button_save_and_close')
+            elif datetime_field:
+                field.clear()
+                field.send_keys(value)
+                field.send_keys(Keys.ENTER)
             else:
                 field.send_keys(value)
                 if 'ui-autocomplete-input' in field.get_attribute('class'):
                     field.send_keys(Keys.DOWN)
                     field.send_keys(Keys.DOWN)
                     field.send_keys(Keys.TAB)
-    
+
     def click_button(self, name):
         self.ui.click_ajax_load_button(name)
 
@@ -921,7 +935,7 @@ class View(object):
 class FormView(View):
     def __init__(self, ui, model, *args, **kwargs):
         super(FormView, self).__init__(ui, model, *args, **kwargs)
-    
+
     def save(self):
         self.ui.click_save()
 
