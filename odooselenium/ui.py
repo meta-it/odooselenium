@@ -845,6 +845,17 @@ class OdooUI(object):
         with self.wait_for_ajax_load():
             translate_button.click()
 
+    def go_to_tab(self, tab_name):
+        tab = WebDriverWait(self.webdriver, 10).until(
+            expected_conditions.presence_of_element_located((
+                By.XPATH,
+                "//a[@class='ui-tabs-anchor' and "
+                "@data-bt-testing-original-string='{}']".format(tab_name)
+            ))
+        )
+        tab.click()
+        time.sleep(1)
+
 
     def page(self, name):
         """ click on the given page if found """
@@ -857,6 +868,8 @@ class OdooUI(object):
         obj = FormView
         if type == 'tree':
             obj = TreeView
+        elif type == 'kanban':
+            obj = KanbanView
 
         return obj(self, model)
 
@@ -922,7 +935,11 @@ class View(object):
                 field.send_keys(value)
                 field.send_keys(Keys.ENTER)
             else:
-                field.send_keys(value)
+                if field.tag_name == 'select':
+                    self.ui.enter_data(key, self.model, value)
+                else:
+                    field.clear()
+                    field.send_keys(value)
                 if 'ui-autocomplete-input' in field.get_attribute('class'):
                     field.send_keys(Keys.DOWN)
                     field.send_keys(Keys.DOWN)
@@ -930,6 +947,15 @@ class View(object):
 
     def click_button(self, name):
         self.ui.click_ajax_load_button(name)
+
+    def create(self, **kwargs):
+        """
+        click create, fill form with kwargs and click save 
+        """
+        self.click_create()
+        view = FormView(self.ui, self.model)
+        view.fill(**kwargs)
+        view.save()
 
 
 class FormView(View):
@@ -939,16 +965,18 @@ class FormView(View):
     def save(self):
         self.ui.click_save()
 
-
 class TreeView(View):
     def __init__(self, ui, model, *args, **kwargs):
         super(TreeView, self).__init__(ui, model, *args, **kwargs)
 
-    def create(self, **kwargs):
-        """
-        click create, fill form with kwargs and click save 
-        """
+    def click_create(self):
         self.ui.click_create()
-        view = FormView(self.ui, self.model)
-        view.fill(**kwargs)
-        view.save()
+
+class KanbanView(View):
+    def __init__(self, ui, model, *args, **kwargs):
+        super(KanbanView, self).__init__(ui, model, *args, **kwargs)
+
+    def click_create(self):
+        xpath = '//button[@data-bt-testing-button="oe_kanban_button_new"]'
+        button = self.ui.webdriver.find_elements_by_xpath(xpath)[0]
+        button.click()
