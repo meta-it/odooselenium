@@ -136,7 +136,7 @@ class OdooUI(object):
 
     def go_to_module(self, module_name, timeout=10):
         """Click on the module in menu."""
-        with self.wait_for_visible_element_by_xpath('.navbar-nav .oe_menu_text',attempts=3):
+        with self.wait_for_visible_element_by_xpath('.navbar-nav .oe_menu_text',attempts=3,timeout=30):
             modules = self.list_modules()
         module_link = None
         for module in modules:
