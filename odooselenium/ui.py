@@ -492,8 +492,11 @@ class OdooUI(object):
         xpath = ('//div[@class="oe_searchview_facets"]/'
                  'div[@class="oe_searchview_input"]')
         input_fields = self.webdriver.find_elements_by_xpath(xpath)
+        input_field = next(
+            field for field in input_fields if field.is_displayed())
         if type:
-            input_fields.send_keys(search_string)
+
+            input_field.send_keys(search_string)
             menu_items = self._get_autocomplete_search_items()
             try:
                 elem = next(e for e in menu_items if e.text == type)
@@ -501,10 +504,8 @@ class OdooUI(object):
                 return
             except StopIteration:
                 assert False, "Search type not found"
-            input_fields.send_keys(Keys.TAB)
+            input_field.send_keys(Keys.TAB)
         else:
-            input_field = next(
-                field for field in input_fields if field.is_displayed())
             with self.wait_for_ajax_load():
                 input_field.click()
                 input_field.send_keys(search_string)
