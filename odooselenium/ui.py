@@ -128,6 +128,12 @@ class OdooUI(object):
         )
 
     def list_modules(self):
+        ui.WebDriverWait(self.webdriver, 10).until(
+            expected_conditions.presence_of_element_located((
+                By.CSS_SELECTOR,
+                '.oe_application .oe_view_manager'
+            ))
+        )
         modules = self.webdriver.find_elements(
             By.CSS_SELECTOR,
             ".navbar-nav .oe_menu_text"
