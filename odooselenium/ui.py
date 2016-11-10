@@ -136,8 +136,7 @@ class OdooUI(object):
 
     def go_to_module(self, module_name, timeout=10):
         """Click on the module in menu."""
-        with self.wait_for_visible_element_by_xpath('.navbar-nav .oe_menu_text',attempts=3,timeout=30):
-            modules = self.list_modules()
+        modules = self.list_modules()
         module_link = None
         for module in modules:
             if module.text == module_name:
@@ -145,8 +144,17 @@ class OdooUI(object):
                 break
         assert module_link is not None, \
             "Couldn't find module menu '{0}'".format(module_name)
-        with self.wait_for_ajax_load():
-            module.click()
+
+        # Wait for application view to be loaded.
+        ui.WebDriverWait(self.webdriver, timeout).until(
+            expected_conditions.presence_of_element_located((
+                By.CSS_SELECTOR,
+                '.oe_application .oe_view_manager'
+            ))
+        )
+
+        module_link.click()
+
         # Wait for application view to be loaded.
         ui.WebDriverWait(self.webdriver, timeout).until(
             expected_conditions.presence_of_element_located((
@@ -274,6 +282,7 @@ class OdooUI(object):
                 xpath = '//button[@data-bt-testing-name="{}"]'.format(
                     data_bt_testing_name)
 
+        # with self.wait_for_ajax_load():
         buttons = self.webdriver.find_elements_by_xpath(xpath)
         visible_buttons = [b for b in buttons if b.is_displayed()]
         if len(visible_buttons) == 0:
@@ -472,7 +481,7 @@ class OdooUI(object):
         clear_searchview_button = self.wait_for_visible_element_by_xpath(xpath)
         with self.wait_for_ajax_load():
             clear_searchview_button.click()
- 
+
     def _get_autocomplete_search_items(self):
         menu_items_xpath = ('//div[contains(@class, "oe-autocomplete")]/'
                             'ul/li/span/em')
@@ -857,12 +866,11 @@ class OdooUI(object):
         tab.click()
         time.sleep(1)
 
-
     def page(self, name):
         """ click on the given page if found """
         self.go_to_module(name)
-        return OdooPage(self)
 
+        return OdooPage(self)
 
     def view(self, model, type='form'):
         """ """
@@ -878,8 +886,10 @@ class OdooUI(object):
 class OdooPage():
     def __init__(self, ui):
         self.ui = ui
+
     def menu(self, name):
         self.ui.go_to_view(name)
+
 
 class View(object):
     def __init__(self, ui, model, *args, **kwargs):
@@ -951,7 +961,7 @@ class View(object):
 
     def create(self, **kwargs):
         """
-        click create, fill form with kwargs and click save 
+        click create, fill form with kwargs and click save
         """
         self.click_create()
         view = FormView(self.ui, self.model)
@@ -966,12 +976,14 @@ class FormView(View):
     def save(self):
         self.ui.click_save()
 
+
 class TreeView(View):
     def __init__(self, ui, model, *args, **kwargs):
         super(TreeView, self).__init__(ui, model, *args, **kwargs)
 
     def click_create(self):
         self.ui.click_create()
+
 
 class KanbanView(View):
     def __init__(self, ui, model, *args, **kwargs):
