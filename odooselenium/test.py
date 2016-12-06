@@ -33,4 +33,4 @@ class TestCase(unittest.TestCase):
 
     def setup_webdriver(self):
         """Set :attr:`webdriver`."""
-        self.webdriver = webdriver.Firefox()
+        self.webdriver = webdriver.Chrome()
