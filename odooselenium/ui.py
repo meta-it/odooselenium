@@ -854,6 +854,26 @@ class OdooUI(object):
 
         return elem
 
+    def wait_for_visible_element_by_css_selector(self, selector, timeout=10, attempts=2):
+        """Find an element by CSS selector and wait until it is visible. Will try up
+        to <attempts> times with a timeout of <timeout> seconds each time."""
+
+        tries = 0
+        elem = None
+
+        while tries < attempts and elem is None:
+            try:
+                condition = expected_conditions.visibility_of_element_located(
+                    (By.CSS_SELECTOR, selector))
+                elem = ui.WebDriverWait(self.webdriver,
+                                        timeout).until(condition)
+            except TimeoutException:
+                tries += 1
+                if tries == attempts:
+                    raise
+
+        return elem
+
     def click_translate(self, field_name, model):
         """Click the translate button that goes with the specified field"""
         elem = self._get_bt_testing_element(field_name, model)
