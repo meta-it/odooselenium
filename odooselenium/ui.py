@@ -185,6 +185,7 @@ class OdooUI(object):
                     By.CSS_SELECTOR,
                     ".oe_secondary_submenu .oe_menu_text"
                 )
+		assert False, menus
                 for menu in menus:
                     if menu.text in [searched_menu] + list(previous_parts):
                         menu_parent = menu.find_element_by_xpath('ancestor::a')
