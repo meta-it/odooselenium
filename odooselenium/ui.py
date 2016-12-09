@@ -144,6 +144,7 @@ class OdooUI(object):
         """Click on the module in menu."""
         modules = self.list_modules()
         module_link = None
+	assert False, modules
         for module in modules:
             if module.text == module_name:
                 module_link = module
