@@ -11,3 +11,9 @@
 
 # Tox files.
 /.tox/
+
+# Cache files
+.cache/
+
+# Coverage
+.coverage
