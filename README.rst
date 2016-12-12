@@ -105,13 +105,6 @@ Installation
 See `INSTALL <https://github.com/meta-it/odooselenium/blob/master/INSTALL>`_.
 
 
-****************
-Project's status
-****************
-
-This project is experimental.
-
-
 **********
 Ressources
 **********
