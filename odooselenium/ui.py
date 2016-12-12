@@ -150,7 +150,7 @@ class OdooUI(object):
                 break
         tuple_module = (module_name, modules)
         assert module_link is not None, \
-            "Couldn't find module menu '{}' in '{}'".format(tuple_module[0], tuple_module[1])
+            "Couldn't find module menu '{0}' in '{0}'".format(tuple_module[0], tuple_module[1])
 
         # Wait for application view to be loaded.
         ui.WebDriverWait(self.webdriver, timeout).until(
@@ -202,7 +202,7 @@ class OdooUI(object):
                 break
         tuple_view = (view_name, menus)
         assert view_link is not None, \
-            "Couldn't find view menu '{}' in '{}'".format(tuple_view[0], tuple_view[1])
+            "Couldn't find view menu '{0}' in '{0}'".format(tuple_view[0], tuple_view[1])
         with self.wait_for_ajax_load():
             view_link.click()
         # Wait for application view to be loaded.
