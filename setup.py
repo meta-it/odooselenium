@@ -30,7 +30,7 @@ CLASSIFIERS = [
 ]
 KEYWORDS = [
     'odoo',
-    'selenium',
+    'selenium==2.53.0',
 ]
 PACKAGES = ['odooselenium']
 REQUIREMENTS = [
