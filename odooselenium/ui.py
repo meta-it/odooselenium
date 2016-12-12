@@ -860,9 +860,11 @@ class OdooUI(object):
 
         return elem
 
-    def wait_for_visible_element_by_css_selector(self, selector, timeout=10, attempts=2):
-        """Find an element by CSS selector and wait until it is visible. Will try up
-        to <attempts> times with a timeout of <timeout> seconds each time."""
+    def wait_for_visible_element_by_css_selector(self, selector,
+                                                 timeout=10, attempts=2):
+        """Find an element by CSS selector and wait until it is visible. Will
+        try up to <attempts> times with a timeout of <timeout> seconds
+        each time."""
 
         tries = 0
         elem = None
