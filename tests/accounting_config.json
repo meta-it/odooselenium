@@ -1,0 +1,16 @@
+[
+    [
+        {"field": "charts", "model": "account.installer", "value": "Belgium - Accounting"},
+        {"field": "company_id", "model": "account.installer", "value": "Your Company"},
+        {"field": "date_start", "model": "account.installer", "value": "01/01/2016"},
+        {"field": "period", "model": "account.installer", "value": "Monthly"}
+    ],
+    [
+        {"field": "chart_template_id", "model": "wizard.multi.charts.accounts", "value": "Belgian PCMN"},
+        {"field": "company_id", "model": "wizard.multi.charts.accounts", "value": "Your Company"},
+        {"field": "currency_id", "model": "wizard.multi.charts.accounts", "value": "LAK", "search_column": "Currency"},
+        {"field": "sale_tax", "model": "wizard.multi.charts.accounts", "value": "TVA services EU", "search_column": "Tax Name"},
+        {"field": "purchase_tax", "model": "wizard.multi.charts.accounts", "value": "VAT-IN-V82-21-S", "search_column": "Internal Name"},
+        {"field": "code_digits", "model": "wizard.multi.charts.accounts", "value": "6"}
+    ]
+]

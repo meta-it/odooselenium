@@ -1,7 +1,5 @@
 """Test suite around model 'res.partner.bank' form addon 'base'."""
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-
 import odooselenium
 
 
@@ -20,27 +18,9 @@ class ResPartnerBankTestCase(odooselenium.TestCase):
         with self.ui.wait_for_ajax_load():
             create_button.click()
         # Fill in form.
-        state_field = self.webdriver.find_element(
-            By.XPATH,
-            "//select["
-            "@data-bt-testing-model_name='res.partner.bank' and "
-            "@data-bt-testing-name='state']")
-        state_field.send_keys(Keys.DOWN)
-        state_field.send_keys(Keys.TAB)
-
-        acc_number_field = self.webdriver.find_element(
-            By.XPATH,
-            "//input["
-            "@data-bt-testing-model_name='res.partner.bank' and "
-            "@data-bt-testing-name='acc_number']")
-        acc_number_field.send_keys('200')
-
-        bank_name_field = self.webdriver.find_element(
-            By.XPATH,
-            "//input["
-            "@data-bt-testing-model_name='res.partner.bank' and "
-            "@data-bt-testing-name='bank_name']")
-        bank_name_field.send_keys('TestBank')
+        self.ui.enter_data('state', 'res.partner.bank', 'Normal Bank Account')
+        self.ui.enter_data('acc_number', 'res.partner.bank', '200')
+        self.ui.enter_data('bank_name', 'res.partner.bank', 'TestBank')
 
         save_button = self.webdriver.find_element(
             By.XPATH,
@@ -52,15 +32,7 @@ class ResPartnerBankTestCase(odooselenium.TestCase):
             save_button.click()
 
         # Delete customer.
-        sidebar_buttons = self.webdriver.find_elements(
-            By.CSS_SELECTOR,
-            '.oe_sidebar button')
-        more_button = [bt for bt in sidebar_buttons if bt.text == u'More'][0]
-        more_button.click()  # "Delete" link appears in drop-down menu.
-        delete_button = self.webdriver.find_element(
-            By.LINK_TEXT,
-            u'Delete')
         with self.ui.wait_for_ajax_load():
-            delete_button.click()
+            self.ui.click_more_item('Delete')
             alert = self.webdriver.switch_to_alert()
             alert.accept()
