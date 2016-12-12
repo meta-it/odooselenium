@@ -142,15 +142,18 @@ class OdooUI(object):
 
     def go_to_module(self, module_name, timeout=10):
         """Click on the module in menu."""
+        list_module_display = []
         modules = self.list_modules()
         module_link = None
         for module in modules:
+            list_module_display.append(module.text)
             if module.text == module_name:
                 module_link = module
                 break
-        tuple_module = (module_name, modules)
+        tuple_module = (module_name, list_module_display)
         assert module_link is not None, \
-            "Couldn't find module menu '{}' in '{}'".format(tuple_module[0], tuple_module[1])
+            "Couldn't find module menu '{}' in '{}'".format(tuple_module[0],
+                                                            tuple_module[1])
 
         # Wait for application view to be loaded.
         ui.WebDriverWait(self.webdriver, timeout).until(
@@ -202,7 +205,8 @@ class OdooUI(object):
                 break
         tuple_view = (view_name, menus)
         assert view_link is not None, \
-            "Couldn't find view menu '{}' in '{}'".format(tuple_view[0], tuple_view[1])
+            "Couldn't find view menu '{}' in '{}'".format(tuple_view[0],
+                                                          tuple_view[1])
         with self.wait_for_ajax_load():
             view_link.click()
         # Wait for application view to be loaded.
@@ -856,9 +860,11 @@ class OdooUI(object):
 
         return elem
 
-    def wait_for_visible_element_by_css_selector(self, selector, timeout=10, attempts=2):
-        """Find an element by CSS selector and wait until it is visible. Will try up
-        to <attempts> times with a timeout of <timeout> seconds each time."""
+    def wait_for_visible_element_by_css_selector(self, selector,
+                                                 timeout=10, attempts=2):
+        """Find an element by CSS selector and wait until it is visible. Will
+        try up to <attempts> times with a timeout of <timeout> seconds
+        each time."""
 
         tries = 0
         elem = None
@@ -948,8 +954,10 @@ class View(object):
         for key, value in kwargs.iteritems():
 
             field = self.get_field(key)
-            relational_field = field.get_attribute('data-bt-testing-submodel_name')
-            datetime_field = 'oe_datepicker_master' in field.get_attribute('class')
+            relational_field = field.get_attribute(
+                'data-bt-testing-submodel_name')
+            datetime_field = 'oe_datepicker_master' in \
+                field.get_attribute('class')
 
             if relational_field:
                 add_link = self.ui.webdriver.find_element_by_css_selector(
@@ -964,7 +972,8 @@ class View(object):
                         with self.ui.wait_for_ajax_load():
                             sfield.clear()
                             sfield.send_keys(v)
-                            if 'ui-autocomplete-input' in sfield.get_attribute('class'):
+                            if 'ui-autocomplete-input' in \
+                               sfield.get_attribute('class'):
                                 sfield.send_keys(Keys.DOWN)
                                 sfield.send_keys(Keys.DOWN)
                                 sfield.send_keys(Keys.TAB)
