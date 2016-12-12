@@ -1,6 +1,8 @@
 after_script:
 - make odoo-stop
 before_script:
+- "wget https://chromedriver.storage.googleapis.com/2.25/chromedriver_linux64.zip"
+- "unzip chromedriver_linux64.zip -d /usr/bin/chromedriver"
 - "export DISPLAY=:99.0"
 - "sh -e /etc/init.d/xvfb start"
 - sleep 3  # give xvfb some time to start
