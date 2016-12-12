@@ -146,7 +146,7 @@ class OdooUI(object):
         modules = self.list_modules()
         module_link = None
         for module in modules:
-            list_module_display.append(module[0])
+            list_module_display.append(module.text)
             if module.text == module_name:
                 module_link = module
                 break
