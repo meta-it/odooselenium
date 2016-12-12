@@ -142,13 +142,15 @@ class OdooUI(object):
 
     def go_to_module(self, module_name, timeout=10):
         """Click on the module in menu."""
+        list_module_display = []
         modules = self.list_modules()
         module_link = None
         for module in modules:
+            list_module_display.append(module[0])
             if module.text == module_name:
                 module_link = module
                 break
-        tuple_module = (module_name, modules)
+        tuple_module = (module_name, list_module_display)
         assert module_link is not None, \
             "Couldn't find module menu '{0}' in '{1}'".format(tuple_module[0], tuple_module[1])
 
