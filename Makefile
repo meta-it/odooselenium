@@ -20,7 +20,7 @@ help:
 lib/odoo-addons/web_selenium:
 	mkdir -p lib/odoo-addons
 	git clone -b 8.0 https://github.com/brain-tec/web_selenium.git ./web_selenium
-	cp -r ./web_selenium/web_selenium lib/odoo-addons/web_selenium
+	cp -r ./web_selenium lib/odoo-addons/web_selenium
 
 
 #: develop - Install minimal development utilities.
